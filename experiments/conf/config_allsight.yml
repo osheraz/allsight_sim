@@ -18,17 +18,17 @@ sensor:
       lightIDList: [0,1,2] 
   gel:
     origin: [0.0, 0, 0] # Center coordinate of the gel, in meters
-    width: 0.019 # Width of the gel, y-axis, in meters 
+    width: 0.019 # Width of the gel, y-axis, in meters
     height: 0.05 # Height of the gel, z-axis, in meters 
     curvature: True  # Model the gel as curve? True/False 
     curvatureMax: 0.05  # Deformation of the gel due to convexity 
     R: 0.5 # Radius of curved gel
     countW: 100 # Number of samples for horizontal direction; higher the finer details
-    mesh: "../assets/meshes/allsight_old.STL" # when there is mesh, every other param is ignored
+    mesh: "../assets/meshes/allsight_fine01.STL" # when there is mesh, every other param is ignored
 
   lights:
     # Light position & properties. 
-    origin: [0.01, 0, 0] # center of the light plane, in meters 
+    origin: [0.01, 0, 0] # center of the light plane, in meters
     spot: True # pyrender.SpotLight if True else pyrender.PointLight
     spot_angles: # spotlight cone inner and outer angles coefficients. result angle will be - (inner/outer)*np.pi [rad] | inner <= outer
       inner: 0
@@ -44,7 +44,7 @@ sensor:
       coords: [[0, 0.01732, 0.01], [0, -0.01732, 0.01], [0, 0.05, 0.01]] # << wrong cartrsian coordinates
     xrtheta: # polar coordinates in y-z plane   
       xs: [0.0, 0.0, 0.0] # x coordinate of the y-z plane 
-      rs: [0.01, 0.01, 0.01] # r in polar coordinates 
+      rs: [0.001, 0.001, 0.001] # r in polar coordinates
       thetas: [-20,100,220] #, -60, -100, -140] # theta in polar coordinates, in degrees
 
     colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
@@ -56,9 +56,9 @@ sensor:
       std: 3
 
   force:
-    enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---  
-    range_force: [0, 10] # dynamic range of forces used to simulate the elastomer deformation
-    max_deformation: 0.005 # max pose depth adjustment, in meters 
+    enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---
+    range_force: [0, 100] # dynamic range of forces used to simulate the elastomer deformation
+    max_deformation: 0.005 # max pose depth adjustment, in meters
 
   bg_calibration:
     enable: True
@@ -69,7 +69,7 @@ sensor:
     clip: [40,200]       # clipping the combination of the simulated difference image with real background image
 
   blur_contact:
-    enable: True
+    enable: False
     mask_img:
       k_size: 25
       sigma: 10
