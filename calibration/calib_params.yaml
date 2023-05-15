@@ -1,0 +1,62 @@
+## params of data collection
+
+collect_data:
+  led:
+  sphere_id:
+  N:
+  M:
+
+
+# params were taken from conf/config_allsight
+### 
+camera: 
+    position: [0.012, 0.0, 0.0] # Camera position
+    # constraints: 0.01<x<0.016 , x_cam > x_light
+    yfov: 140.0  # Vertical field of view in degrees 
+    # constraints: 130<yfov<160 ---> need to check
+
+lights:
+  # Light position & properties. 
+  origin: [0.01, 0, 0] # center of the light plane, in meters
+  # constraints: 0.08<x<0.014
+  spot_angles: # spotlight cone inner and outer angles coefficients. result angle will be - (inner/outer)*np.pi [rad] | inner <= outer
+    inner: 0
+    outer: 0.5
+    # constrains: 0<=inner<outer<1 
+  intensities: [0.5,0.6,0.6] 
+  # constrains: 0<i<1
+
+noise:
+  color:
+    mean: 1.5
+    std: 3
+    # constrains: 0<std<5, 0<mean<30
+
+force:
+  max_deformation: 0.0065 # max pose depth adjustment, in meters 
+  # constrains: 0.003<d<0.006
+
+bg_calibration:       
+  scale_factor: 0.3   # how much the simulated difference (between _bg_sim and bg_real) will affect the final bg image
+  # constrains: 0<f<1
+  blur:               # gaussian blur of simulated diff | include ksize and sigma values
+    k_size: 21         
+    sigma: 0
+    # constrains: 3<=k<51, k=odd int | 0<=sigma<=10
+  clip: [0,200] # clipping the combination of the simulated difference image with real background image
+  # constrains: c = int , 0<=c_low<=40 , 170<=c_high<=255
+
+blur_contact:
+  mask_img:
+    k_size: 25
+    sigma: 0
+    # constraints: 3<=k<51, k=odd int | 0<=sigma<=10
+  inv_mask_img:
+    k_size: 55
+    sigma: 0
+    # constraints: 3<=k<51, k=odd int | 0<=sigma<=10
+  add_weighted:
+    w_real: 1 
+    w_sim: 0.3
+    bias: 0.1
+    # constraints: 0.5=<w_real<=1 , 0.1=<w_sim<=1, 0<=bias<=20

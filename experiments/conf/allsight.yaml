@@ -1,0 +1,35 @@
+defaults:
+  - override hydra/job_logging: disabled
+
+hydra:
+  run:
+    dir: .././
+
+tacto:
+  width: 640
+  height: 480
+  visualize_gui: True
+
+allsight:
+  urdf_path: "../assets/meshes/allsight.urdf"
+  base_position: [0, 0, 0]
+  base_orientation: [0.0, -0.707106, 0.0, 0.707106] # quaternion from p.getQuaternionFromEuler([0, -pi/2, 0])
+  # base_orientation: [0.0, 0, 0.0, 1] # quaternion from p.getQuaternionFromEuler([0, 0 , 0])
+  use_fixed_base: True
+
+object:
+  urdf_path: "../assets/objects/sphere_20.urdf"
+  base_position: [0, 0, 0.06]
+  global_scaling: 0.15
+  use_fixed_base: False
+
+object_control_panel:
+  slider_params:
+    position_low: [-0.3, -0.3, 0]
+    position_high: [0.3, 0.3, 0.3]
+
+pybullet_camera:
+  cameraDistance: 0.12
+  cameraYaw: 90.
+  cameraPitch: -45.
+  cameraTargetPosition: [0, 0, 0]

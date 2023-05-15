@@ -1,0 +1,17 @@
+.vscode/
+.hydra/
+*/__pycache__
+tacto/*.pyc
+tacto.egg-info/
+*/.hydra
+*.a
+*.so
+*.o
+*.swp
+*.pyc
+*.pkl
+*.pickle
+*.p
+.idea
+experiments/dataset/
+calibration/imgs0/
