@@ -23,7 +23,7 @@ sensor:
     curvature: True  # Model the gel as curve? True/False 
     curvatureMax: 0.05  # Deformation of the gel due to convexity 
     R: 0.5 # Radius of curved gel
-    countW: 100 # Number of samples for horizontal direction; higher the finer details
+    countW: 101 # Number of samples for horizontal direction; higher the finer details
     mesh: "../assets/meshes/allsight_old.STL" # when there is mesh, every other param is ignored
 
   lights:
