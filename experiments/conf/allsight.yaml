@@ -6,7 +6,7 @@ hydra:
     dir: .././
 
 tacto:
-  width: 640
+  width: 480
   height: 480
   visualize_gui: True
 

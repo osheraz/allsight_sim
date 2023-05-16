@@ -36,6 +36,7 @@ origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 class Simulator:
 
     def __init__(self, cfg: DictConfig,
+                 summary: dict,
                  with_bg=False,
                  attributes: dict = None
                  ):
@@ -62,9 +63,10 @@ class Simulator:
             background=bg if with_bg else None
         )
 
+        self.summary = summary
         #                    x  y  z      h      r
         self.start_h = 0.012
-        self.finger_props = [0, 0, self.start_h, 0.016, 0.011]  # [m]
+        self.finger_props = [0, 0, self.start_h, 0.015, 0.01]  # [m]
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):

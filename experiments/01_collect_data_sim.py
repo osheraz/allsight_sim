@@ -52,27 +52,28 @@ def main(cfg):
     gel = 'clear'
     N = 30
 
-    conf = {'method': 'press',
-            'save': save,
-            'up_to': up_to,
-            'start_from': start_from,
-            'N': N,
-            'max_press_time': max_press_time,
-            'max_pressure': max_pressure,
-            'leds': leds,
-            'indenter': indenter,
-            'gel': gel,
-            'save_every_sec': save_every_sec}
+    summary = {'method': 'press',
+               'save': save,
+               'up_to': up_to,
+               'start_from': start_from,
+               'N': N,
+               'max_press_time': max_press_time,
+               'max_pressure': max_pressure,
+               'leds': leds,
+               'indenter': indenter,
+               'gel': gel,
+               'save_every_sec': save_every_sec}
 
     # create simulator object
     simulator = Simulator(cfg=cfg,
-                          with_bg=False)
+                          summary=summary,
+                          with_bg=True)
 
     # create env
     simulator.create_env(cfg, obj_id=indenter)
 
     # collect data
-    simulator.collect_data(conf)
+    simulator.collect_data(summary)
 
 
 if __name__ == "__main__":

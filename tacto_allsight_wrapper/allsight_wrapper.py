@@ -19,7 +19,7 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
     return pose
 
 
-def circle_mask(size=(640, 480), border=0):
+def circle_mask(size=(480, 480), border=0):
     """
         used to filter center circular area of a given image,
         corresponding to the AllSight surface area
@@ -149,10 +149,10 @@ class Renderer(Renderer):
                 color = colors[i]
 
                 theta = np.pi / 180 * (thetas[i] - 90)
-                tuning_angle = -np.pi / 16
+                tuning_angle = -np.pi / 10
                 light_pose_0 = euler2matrix(
                     xyz="yzx",
-                    angles=[0, tuning_angle, theta],
+                    angles=[tuning_angle, 0, theta],
                     translation=xyz[i] + origin,
                 )
 
