@@ -42,7 +42,7 @@ def main(cfg):
     save = False
 
     start_from = 1
-    up_to = 11
+    up_to = 12
     max_press_time = 10.0
     max_pressure = 4.0
     save_every_sec = 0.005
@@ -66,7 +66,7 @@ def main(cfg):
 
     # create simulator object
     simulator = Simulator(cfg=cfg,
-                          with_bg=True)
+                          with_bg=False)
 
     # create env
     simulator.create_env(cfg, obj_id=indenter)

@@ -221,6 +221,7 @@ class Sensor(Sensor):
         self.object_poses = {}
         self.normal_forces = {}
         self._static = None
+        self.blur_enabled = self.renderer.conf.sensor.blur_contact.enable
 
     def render(self):
         '''Render tacto images from each camera's view.
@@ -253,7 +254,6 @@ class Sensor(Sensor):
             else:
                 color, depth = self._render_static()
 
-            self.blur_enabled = self.renderer.conf.sensor.blur_contact.enable
             if self.blur_enabled:
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)

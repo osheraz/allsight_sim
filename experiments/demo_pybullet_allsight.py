@@ -27,7 +27,7 @@ def main(cfg, blur=True, is_bg=True):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     simulator = Simulator(cfg=cfg,
-                          with_bg=True)
+                          with_bg=False)
     simulator.create_env(cfg, obj_id='20')
     simulator.run_sim()
 
