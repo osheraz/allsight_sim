@@ -65,6 +65,7 @@ class Simulator:
 
         self.summary = summary
         #                    x  y  z      h      r
+
         self.start_h = 0.012
         self.finger_props = [0, 0, self.start_h, 0.015, 0.01]  # [m]
 
