@@ -64,10 +64,10 @@ class Simulator:
         )
 
         self.summary = summary
-        #                    x  y  z      h      r
 
         self.start_h = 0.012
-        self.finger_props = [0, 0, self.start_h, 0.015, 0.01]  # [m]
+        #                    x  y  z              h      r
+        self.finger_props = [0, 0, self.start_h, 0.015, 0.012]  # [m]
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -151,7 +151,7 @@ class Simulator:
         # TODO: should take everything from conf
 
         G = 2
-        H_cyl = np.linspace(0,  self.finger_props[3], 7)
+        H_cyl = np.linspace(0, self.finger_props[3], 7)
 
         if i < len(H_cyl):
 
@@ -185,7 +185,7 @@ class Simulator:
             B = np.asarray([
                 self.finger_props[4] * np.sin(phi) * np.cos(q),
                 self.finger_props[4] * np.sin(phi) * np.sin(q),
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi) ,
+                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi),
             ])
 
             B2 = np.asarray([
@@ -208,45 +208,7 @@ class Simulator:
 
         return push_point_start, push_point_end
 
-    def collect_data(self, conf
-                     # led: str = 'rrrgggbbb', indenter: str = '30',
-                     # angles_split: int = 29, presses_per_angle: int = 10,
-                     # save: bool = False, save_depth: bool = False
-                     ):
-        '''Collect data in the sim env
-
-        Parameters
-        ----------
-        led : str, optional
-            led conf (future work), by default 'rrrgggbbb'
-        indenter : str, optional
-            sphere id , by default '30'
-        angles_split : int, optional
-            number of angles for taking data, by default 29
-        presses_per_angle : int, optional
-            number of presses points along the hight axis per angle, by default 10
-        save : bool, optional
-            save data, by default False
-        save_depth : bool, optional
-            save depth images, by default False
-
-        Raises
-        ------
-        Exception
-            Could not write image
-        '''
-
-        #     conf = {'method': 'press',
-        #             'save': save,
-        #             'up_to': up_to,
-        #             'start_from': start_from,
-        #             'N': N,
-        #             'max_press_time': max_press_time,
-        #             'max_pressure': max_pressure,
-        #             'leds': leds,
-        #             'indenter': indenter,
-        #             'gel': gel,
-        #             'save_every_sec': save_every_sec}
+    def collect_data(self, conf):
 
         # start the simulation thread 
         self.start()
@@ -286,14 +248,21 @@ class Simulator:
 
             for i in range(conf['start_from'], conf['up_to'], 1):
 
-
                 push_point_start, push_point_end = self.get_push_point_by_index(q, i)
                 self._obj_x = push_point_start[0][0]
                 self._obj_y = push_point_start[0][1]
                 self._obj_z = push_point_start[0][2]
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=100)
+                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=70)
 
                 # get image data
+                color, depth = self.allsight.render()  # depth = gel deformation [meters]
+                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
+
+                self._obj_x = push_point_end[0][0]
+                self._obj_y = push_point_end[0][1]
+                self._obj_z = push_point_end[0][2]
+
+                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=80)
                 color, depth = self.allsight.render()  # depth = gel deformation [meters]
                 self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
 
@@ -310,18 +279,10 @@ class Simulator:
                                    color_img, depth_img, pose, orient, force, frame_count)
 
                 # get object-base-pose in relation to world frame and normal-force
-                # print(f'frame count : {frame_count}\n'
-                #       f'theta : {q} \n'
-                #       f'Indenter position: {pose} \t Indenter force: {force}\n')
+                print(f'frame count : {frame_count}\n'
+                      f'theta : {q} \n'
+                      f'Indenter position: {pose} \t Indenter force: {force}\n')
 
-                self._obj_x = push_point_end[0][0]
-                self._obj_y = push_point_end[0][1]
-                self._obj_z = push_point_end[0][2]
-
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=100)
-                color, depth = self.allsight.render()  # depth = gel deformation [meters]
-                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
-                # move the object down
                 frame_count += 1
 
             if conf['save']: self.logger.save_batch_images()
@@ -546,7 +507,7 @@ class Simulator:
 #         self._obj_y = push_point_end[0][1]
 #         self._obj_z = push_point_end[0][2]
 #
-#         pyb.changeConstraint(cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=100)
+#         pyb.changeConstraint(cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=80)
 #         # time.sleep(0.05)
 #
 #         color, depth = self.allsight.render()  # depth = gel deformation [meters]

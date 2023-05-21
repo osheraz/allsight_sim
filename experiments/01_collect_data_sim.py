@@ -39,7 +39,6 @@ def main(cfg):
     # start script from the path of the paraent dir
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    save = False
 
     start_from = 1
     up_to = 12
@@ -48,9 +47,10 @@ def main(cfg):
     save_every_sec = 0.005
 
     indenter = '20'
-    leds = 'rgbrgbrgb'
+    leds = 'rrrgggbbb'
     gel = 'clear'
     N = 30
+    save = False
 
     summary = {'method': 'press',
                'save': save,

@@ -149,7 +149,7 @@ class Renderer(Renderer):
                 color = colors[i]
 
                 theta = np.pi / 180 * (thetas[i] - 90)
-                tuning_angle = -np.pi / 10
+                tuning_angle = -np.pi / 8
                 light_pose_0 = euler2matrix(
                     xyz="yzx",
                     angles=[tuning_angle, 0, theta],

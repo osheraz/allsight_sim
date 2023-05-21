@@ -62,11 +62,11 @@ sensor:
 
   bg_calibration:
     enable: True
-    scale_factor: 0.7  # how much the simulated difference (between _bg_sim and bg_real) will affect the final bg image
+    scale_factor: 1.0  # how much the simulated difference (between _bg_sim and bg_real) will affect the final bg image
     blur:               # gaussian blur of simulated diff | include ksize and sigma values
       k_size: 5       
       sigma: 1.1
-    clip: [40,200]       # clipping the combination of the simulated difference image with real background image
+    clip: [40,255]       # clipping the combination of the simulated difference image with real background image
 
   blur_contact:
     enable: False
