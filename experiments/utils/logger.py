@@ -20,7 +20,7 @@ class DataSimLogger():
         self.save_depth = save_depth
         # Init of the dataset dir paths with the current day and time
         self.date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S")
-        self.dataset_path_images = "dataset/clear/{}/images/{}/img_{}".format(leds, indenter, self.date)
+        self.dataset_path_images = "dataset/{}/images/{}/img_{}".format(leds, indenter, self.date)
         self.dataset_path_images_rgb = self.dataset_path_images
         self.dataset_path_images_depth = os.path.join(self.dataset_path_images,"depth")
 

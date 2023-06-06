@@ -50,7 +50,7 @@ def main(cfg):
     leds = 'rrrgggbbb'
     gel = 'clear'
     N = 30
-    save = False
+    save = True
 
     summary = {'method': 'press',
                'save': save,

@@ -285,6 +285,13 @@ class Simulator:
 
                 frame_count += 1
 
+                self._obj_x = push_point_start[0][0]
+                self._obj_y = push_point_start[0][1]
+                self._obj_z = push_point_start[0][2]
+                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=70)
+                color, depth = self.allsight.render()  # depth = gel deformation [meters]
+                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
+
             if conf['save']: self.logger.save_batch_images()
 
         self.logger.save_data_dict()
