@@ -268,8 +268,9 @@ class Simulator:
 
                 # time.sleep(0.1)
 
-                pose = pyb.getBasePositionAndOrientation(self.obj.id)[0][:3]
-                orient = pyb.getBasePositionAndOrientation(self.obj.id)[0][:4]
+                pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
+                pose[-1] -= self.start_h
+                orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
                 force = self.allsight.get_force('cam0')['2_-1']
 
                 color_img = color[0]

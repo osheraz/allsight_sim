@@ -37,7 +37,7 @@ j_i = 0
 for JSON_FILE in buffer_paths:
 
     j_i += 1
-    print(f'transforming dataset: {JSON_FILE[-58:]} \t {j_i}/{len(buffer_paths)}')
+    print(f'Loading dataset: {JSON_FILE[-58:]} \t {j_i}/{len(buffer_paths)}')
 
     df_data = pd.read_json(JSON_FILE).transpose()
 
@@ -56,7 +56,7 @@ for JSON_FILE in buffer_paths:
 
     ax = fig.add_subplot(111, projection='3d')
     for i in range(len(df_data.pose)):
-        pxyz = df_data['pose'][i]
+        pxyz = df_data['pose'][i][0]
         ax.scatter(pxyz[0], pxyz[1], pxyz[2], c='black')
 
     ax.view_init(90, 90)
@@ -82,11 +82,11 @@ for JSON_FILE in buffer_paths:
 
     tm = TransformManager()
 
-    amnt = 10 if len(df_data) < 6000 else 25
+    amnt = 1 if len(df_data) < 6000 else 25
     for i in range(0, len(df_data['pose']), amnt):
-        object2cam = pt.transform_from_pq(np.hstack((df_data['pose'][i],
+        object2cam = pt.transform_from_pq(np.hstack((df_data['pose'][i][0],
                                                      pr.quaternion_wxyz_from_xyzw(
-                                                         df_data['orient'][i]))))
+                                                         df_data['pose'][i][1]))))
 
         tm.add_transform("object" + str(i), "camera", object2cam)
 
@@ -94,14 +94,14 @@ for JSON_FILE in buffer_paths:
 
     scale = 2000
     for i in range(0, len(df_data['pose']), 5):
-        pxyz = df_data['pose'][i]
+        pxyz = df_data['pose'][i][0]
         nf_xyz = df_data['ft'][i]
 
-        a = Arrow3D([pxyz[0], pxyz[0] + nf_xyz[0] / scale], [pxyz[1], pxyz[1] + nf_xyz[1] / scale],
-                    [pxyz[2], pxyz[2] + nf_xyz[2] / scale], mutation_scale=5,
-                    lw=0.3, arrowstyle="-|>", color="k")
+        # a = Arrow3D([pxyz[0], pxyz[0] + nf_xyz[0] / scale], [pxyz[1], pxyz[1] + nf_xyz[1] / scale],
+        #             [pxyz[2], pxyz[2] + nf_xyz[2] / scale], mutation_scale=5,
+        #             lw=0.3, arrowstyle="-|>", color="k")
 
-        ax.add_artist(a)
+        # ax.add_artist(a)
 
     ax.set_xlim((-0.014, 0.014))
     ax.set_ylim((-0.014, 0.014))

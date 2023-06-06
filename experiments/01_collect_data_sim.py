@@ -46,10 +46,10 @@ def main(cfg):
     max_pressure = 4.0
     save_every_sec = 0.005
 
-    indenter = '20'
+    indenter = '30'
     leds = 'rrrgggbbb'
     gel = 'clear'
-    N = 30
+    N = 50
     save = True
 
     summary = {'method': 'press',

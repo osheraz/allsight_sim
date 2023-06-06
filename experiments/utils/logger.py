@@ -40,7 +40,6 @@ class DataSimLogger():
         img_id = 'image{}_{:.2f}_{:.2f}.jpg'.format(i, q, count)
         img_path = os.path.join(self.dataset_path_images_rgb, img_id)
 
-
         depth_id = 'depth{}_{:.2f}_{:.2f}.jpg'.format(i, q, count)
         depth_path = os.path.join(self.dataset_path_images_depth, depth_id)
 
