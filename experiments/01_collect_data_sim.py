@@ -39,17 +39,16 @@ def main(cfg):
     # start script from the path of the paraent dir
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
-    start_from = 1
-    up_to = 12
+    start_from = 4
+    up_to = 11
     max_press_time = 10.0
     max_pressure = 4.0
     save_every_sec = 0.005
 
-    indenter = '30'
+    indenter = '20'
     leds = 'rrrgggbbb'
     gel = 'clear'
-    N = 50
+    N = 100
     save = True
 
     summary = {'method': 'press',

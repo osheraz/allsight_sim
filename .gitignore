@@ -13,5 +13,3 @@ tacto.egg-info/
 *.pickle
 *.p
 .idea
-experiments/dataset/
-calibration/imgs0/

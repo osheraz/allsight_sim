@@ -11,7 +11,7 @@ pc_name = os.getlogin()
 
 class DataSimLogger():
 
-    def __init__(self, leds, indenter, save=True , save_depth=False):
+    def __init__(self, leds, indenter, save=True, save_depth=False):
 
         self.data_dict = {}
         self.img_press_dict = {}
@@ -57,11 +57,11 @@ class DataSimLogger():
     def save_batch_images(self):
         # Save images
         for key in self.img_press_dict.keys():
-            
+
             if not cv2.imwrite(key, self.img_press_dict[key]):
                 raise Exception("Could not write image")
-        
-        if self.save_depth:            
+
+        if self.save_depth:
             for key in self.depth_press_dict.keys():
                 if not cv2.imwrite(key, self.depth_press_dict[key]):
                     raise Exception("Could not write image")
