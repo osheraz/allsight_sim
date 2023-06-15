@@ -39,9 +39,9 @@ def main(cfg):
     # start script from the path of the paraent dir
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    start_from = 4
+    start_from = 11
     up_to = 11
-    max_press_time = 10.0
+    max_press_time = 20.0
     max_pressure = 4.0
     save_every_sec = 0.005
 

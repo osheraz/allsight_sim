@@ -182,22 +182,23 @@ class Simulator:
 
             phi = np.linspace(0, np.pi / 2, 5)[::-1][i - len(H_cyl)]
 
+            fix = 0.15e-3 if phi < np.pi/2.2 else 0.5e-3
+
             B = np.asarray([
-                self.finger_props[4] * np.sin(phi) * np.cos(q),
-                self.finger_props[4] * np.sin(phi) * np.sin(q),
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi),
+                self.finger_props[4] * np.sin(phi) * np.cos(q) + fix,
+                self.finger_props[4] * np.sin(phi) * np.sin(q) + fix,
+                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi)+ fix,
             ])
 
             B2 = np.asarray([
-                self.finger_props[4] * G * np.sin(phi) * np.cos(q),
-                self.finger_props[4] * G * np.sin(phi) * np.sin(q),
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * G * np.cos(phi),
+                self.finger_props[4] * G * np.sin(phi) * np.cos(q) + fix,
+                self.finger_props[4] * G * np.sin(phi) * np.sin(q) + fix,
+                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * G * np.cos(phi) + fix,
             ])
 
             Ry = rotation_matrix(phi, yaxis)
             Rz = rotation_matrix(q, zaxis)
             Rt = rotation_matrix(np.pi / 2, yaxis)
-            Rx = rotation_matrix(np.pi, xaxis)
 
             rot = concatenate_matrices(Rz, Ry, Rt)[:3, :3]
 
@@ -231,7 +232,7 @@ class Simulator:
         self.logger = DataSimLogger(conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
 
         # take ref frame 
-        ref_frame, _ = self.allsight.render()  # delete?
+        ref_frame, _ = self.allsight.render()
 
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
 
@@ -250,11 +251,13 @@ class Simulator:
 
                 if i == self.HH: continue
 
+                f_push = 80 if i < self.HH else 70
+
                 push_point_start, push_point_end = self.get_push_point_by_index(q, i)
                 self._obj_x = push_point_start[0][0]
                 self._obj_y = push_point_start[0][1]
                 self._obj_z = push_point_start[0][2]
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=70)
+                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=f_push)
 
                 # get image data
                 color, depth = self.allsight.render()  # depth = gel deformation [meters]
@@ -264,7 +267,7 @@ class Simulator:
                 self._obj_y = push_point_end[0][1]
                 self._obj_z = push_point_end[0][2]
 
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=80)
+                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=f_push)
                 color, depth = self.allsight.render()  # depth = gel deformation [meters]
                 self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
 
@@ -273,7 +276,10 @@ class Simulator:
                 self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
 
                 pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
-                pose[-1] -= self.start_h
+                pose[0] -= np.sign(pose[0]) * 0.002  # radi
+                pose[1] -= np.sign(pose[1]) * 0.002  # radi
+                pose[2] -= self.start_h + 0.006
+
                 orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
                 force = self.allsight.get_force('cam0')['2_-1']
 
@@ -284,10 +290,10 @@ class Simulator:
                                    color_img, depth_img, pose, orient, force, frame_count)
 
                 # get object-base-pose in relation to world frame and normal-force
-                print(f'frame count : {frame_count}\n'
-                      f'theta : {np.rad2deg(q)} \n'
-                      f'Indenter position: {pose} \t Indenter force: {force}\n')
-
+                # print(f'frame count : {frame_count}\n'
+                #       f'theta : {np.rad2deg(q)} \n'
+                #       f'Indenter position: {pose} \t Indenter force: {force}\n')
+                print(pose)
                 frame_count += 1
 
                 # self._obj_x = push_point_start[0][0]

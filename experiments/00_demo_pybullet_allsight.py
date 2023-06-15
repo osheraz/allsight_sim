@@ -28,7 +28,7 @@ def main(cfg, blur=True, is_bg=True):
 
     simulator = Simulator(cfg=cfg,
                           summary={},
-                          with_bg=False)
+                          with_bg=True)
     simulator.create_env(cfg, obj_id='20')
     simulator.run_sim()
 
