@@ -46,10 +46,10 @@ def main(cfg):
     save_every_sec = 0.005
 
     indenter = '20'
-    leds = 'rrrgggbbb'
+    leds = 'white'
     gel = 'clear'
     N = 100
-    save = True
+    save = False
 
     summary = {'method': 'press',
                'save': save,

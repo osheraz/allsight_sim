@@ -15,7 +15,7 @@ sensor:
       yfov: 110.0  #140.8 # Vertical field of view in degrees
       znear: 0.001  # Distance to the near clipping plane, in meters
       #lightIDList: [0, 1, 2, 3 ,4 ,5, 6, 7, 8] # Select light ID list for rendering (OpenGL has max limit of 8 lights)
-      lightIDList: [0,1,2] 
+      lightIDList: [0, 1, 2, 3 ,4 ,5, 6, 7, 8]
   gel:
     origin: [0.0, 0, 0] # Center coordinate of the gel, in meters
     width: 0.019 # Width of the gel, y-axis, in meters
@@ -43,17 +43,17 @@ sensor:
     xyz: # cartesian coordinates
       coords: [[0, 0.01732, 0.01], [0, -0.01732, 0.01], [0, 0.05, 0.01]] # << wrong cartrsian coordinates
     xrtheta: # polar coordinates in y-z plane   
-      xs: [0.0, 0.0, 0.0] # x coordinate of the y-z plane 
-      rs: [0.0, 0.0, 0.0] # r in polar coordinates
-      thetas: [20,140,260] #, -60, -100, -140] # theta in polar coordinates, in degrees
+      xs: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # x coordinate of the y-z plane
+      rs: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # r in polar coordinates
+      thetas: [20, 80,140, 200, 260, 300] #, -60, -100, -140] # theta in polar coordinates, in degrees
 
-    colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
-    intensities: [0.2,0.3,0.3]
+    colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ],[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
+    intensities: [0.2,0.3,0.3, 0.2,0.3,0.3]
 
   noise:
     color:
       mean: 0
-      std: 10
+      std: 3
 
   force:
     enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---

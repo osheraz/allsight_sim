@@ -26,9 +26,11 @@ from tacto_allsight_wrapper.allsight_simulator import Simulator
 def main(cfg, blur=True, is_bg=True):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+    summary = {'leds': 'rgbrgbrgb'}
+
     simulator = Simulator(cfg=cfg,
-                          summary={},
-                          with_bg=True)
+                          summary=summary,
+                          with_bg=False)
     simulator.create_env(cfg, obj_id='20')
     simulator.run_sim()
 

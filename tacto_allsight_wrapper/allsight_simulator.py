@@ -54,12 +54,15 @@ class Simulator:
         '''
 
         # bg image
-        bg = cv2.imread("conf/ref_frame.jpg")
+        leds = summary['leds']
+
+        bg = cv2.imread(f"conf/ref_frame_{leds}.jpg")
+        conf_path = f"conf/config_allsight_{leds}.yml"
 
         # initialize allsight
         # TODO: modify to support different leds
         self.allsight = allsight_wrapper.Sensor(
-            **cfg.tacto, **{"config_path": "conf/config_allsight.yml"},
+            **cfg.tacto, **{"config_path": conf_path},
             background=bg if with_bg else None
         )
 
@@ -293,7 +296,7 @@ class Simulator:
                 # print(f'frame count : {frame_count}\n'
                 #       f'theta : {np.rad2deg(q)} \n'
                 #       f'Indenter position: {pose} \t Indenter force: {force}\n')
-                print(pose)
+                # print(pose)
                 frame_count += 1
 
                 # self._obj_x = push_point_start[0][0]
