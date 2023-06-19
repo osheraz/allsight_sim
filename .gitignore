@@ -13,3 +13,4 @@ tacto.egg-info/
 *.pickle
 *.p
 .idea
+/experiments/dataset/
