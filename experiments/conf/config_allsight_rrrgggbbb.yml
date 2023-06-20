@@ -48,7 +48,8 @@ sensor:
       thetas: [20,140,260] #, -60, -100, -140] # theta in polar coordinates, in degrees
 
     colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
-    intensities: [0.2,0.3,0.3]
+#    intensities: [0.2,0.3,0.3]
+    intensities: [0.1,0.2,0.2]
 
   noise:
     color:

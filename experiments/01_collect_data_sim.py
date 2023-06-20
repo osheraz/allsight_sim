@@ -41,27 +41,21 @@ def main(cfg):
 
     start_from = 11
     up_to = 11
-    max_press_time = 20.0
-    max_pressure = 4.0
-    save_every_sec = 0.005
 
-    indenter = '20'
-    leds = 'white'
+    indenter = 'cube'
+    leds = 'rgbrgbrgb'
     gel = 'clear'
-    N = 100
-    save = False
+    N = 57
+    save = True
 
     summary = {'method': 'press',
                'save': save,
                'up_to': up_to,
                'start_from': start_from,
                'N': N,
-               'max_press_time': max_press_time,
-               'max_pressure': max_pressure,
                'leds': leds,
                'indenter': indenter,
-               'gel': gel,
-               'save_every_sec': save_every_sec}
+               'gel': gel}
 
     # create simulator object
     simulator = Simulator(cfg=cfg,

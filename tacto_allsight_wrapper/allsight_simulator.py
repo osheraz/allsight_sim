@@ -96,7 +96,9 @@ class Simulator:
 
         # object body 
         # take the urdf path with the relevant id given
-        obj_urdf_path = f"../assets/objects/sphere_{obj_id}.urdf"
+        # obj_urdf_path = f"../assets/objects/sphere_{obj_id}.urdf"
+        obj_urdf_path = f"../assets/objects/cube_small.urdf"
+
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
         # set start pose
