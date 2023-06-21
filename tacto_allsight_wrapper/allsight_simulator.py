@@ -70,7 +70,7 @@ class Simulator:
         self.HH = 20
         self.start_h = 0.012
         #                    x  y  z              h      r
-        self.finger_props = [0, 0, self.start_h, 0.016, 0.012]  # [m]
+        self.finger_props = [0, 0, self.start_h, 0.016, 0.0128]  # [m]
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -103,7 +103,6 @@ class Simulator:
         self.obj = px.Body(**cfg.object)
         # set start pose
         self.obj.set_base_pose([0, 0, 0.056])
-        (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
         self.allsight.add_body(self.obj)
 
         # camera body
@@ -125,14 +124,103 @@ class Simulator:
         '''
 
         self.start()
-
         while True:
             color, depth = self.allsight.render()
             self.allsight.updateGUI(color, depth)
 
         self.t.stop()
 
-    # TODO: move to different class
+    def collect_data(self, conf):
+
+        # start the simulation thread 
+        self.start()
+
+        # create constraints
+        (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
+        init_xyz = [self._obj_x, self._obj_y, self._obj_z]
+
+        self.cid = pyb.createConstraint(
+            self.obj.id,  # parent body unique id
+            -1,  # parent link index (or -1 for the base)
+            -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
+            -1,  # child link index, or -1 for the base
+            pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
+            [0, 0, 0],  # joint axis, in child link frame
+            [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
+            init_xyz
+            # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
+        )
+
+        # create data logger object
+        self.logger = DataSimLogger(conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
+
+        # take ref frame 
+        ref_frame, _ = self.allsight.render()
+
+        ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
+
+        if conf['save']:
+            ref_frame[0] = cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB)
+            if not cv2.imwrite(ref_img_color_path, ref_frame[0]):
+                raise Exception("Could not write image")
+
+        frame_count = 0
+
+        Q = np.linspace(0, 2 * np.pi, conf['N'])
+
+        for q in Q:
+
+            for i in range(conf['start_from'], self.HH + 5 - 1, 1):
+
+                if i == self.HH: continue
+
+                f_push = 80 if i < self.HH else 70
+
+                push_point_start, push_point_end = self.get_push_point_by_index(q, i)
+
+                # pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
+                #                      jointChildFrameOrientation=push_point_start[1],
+                #                      maxForce=f_push)
+
+                pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
+                                     childFramePosition=push_point_start[0], childFrameOrientation=push_point_start[1])
+
+                color, depth = self.allsight.render()
+                self.allsight.updateGUI(color, depth)
+                time.sleep(0.01)
+
+                # pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
+                #                      jointChildFrameOrientation=push_point_end[1],
+                #                      maxForce=f_push)
+
+                pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
+                                     childFramePosition=push_point_end[0], childFrameOrientation=push_point_end[1])
+
+                color, depth = self.allsight.render()
+                self.allsight.updateGUI(color, depth)
+
+                time.sleep(0.01)
+                color, depth = self.allsight.render()
+                self.allsight.updateGUI(color, depth)
+
+                pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
+                # pose[0] -= np.sign(pose[0]) * 0.002  # radi
+                # pose[1] -= np.sign(pose[1]) * 0.002  # radi
+                # pose[2] -= self.start_h + 0.006
+
+                orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
+                force = self.allsight.get_force('cam0')['2_-1']
+
+                color_img = color[0]
+                depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
+                self.logger.append(i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                                   color_img, depth_img, pose, orient, force, frame_count)
+
+                frame_count += 1
+
+            if conf['save']: self.logger.save_batch_images()
+
+        self.logger.save_data_dict()
 
     def get_push_point_by_index(self, q: float, i: int) -> Any:
         '''Get start and end points for every press process
@@ -180,8 +268,8 @@ class Simulator:
 
             rot = R.from_matrix(rot[:3, :3]).as_quat()
 
-            push_point_end = [[H[0], H[1], H[2]], [rot]]
-            push_point_start = [[H2[0], H2[1], H2[2]], [rot]]
+            push_point_end = [[H[0], H[1], H[2]], rot.tolist()]
+            push_point_start = [[H2[0], H2[1], H2[2]], rot.tolist()]
 
         else:
 
@@ -209,108 +297,10 @@ class Simulator:
 
             rot = R.from_matrix(rot).as_quat()
 
-            push_point_end = [[B[0], B[1], B[2]], [rot]]
-            push_point_start = [[B2[0], B2[1], B2[2]], [rot]]
+            push_point_end = [[B[0], B[1], B[2]], rot.tolist()]
+            push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
-
-    def collect_data(self, conf):
-
-        # start the simulation thread 
-        self.start()
-
-        # create constraints
-        init_xyz = [self._obj_x, self._obj_y, self._obj_z]
-        self.cid = pyb.createConstraint(
-            self.obj.id,  # parent body unique id
-            -1,  # parent link index (or -1 for the base)
-            -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
-            -1,  # child link index, or -1 for the base
-            pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
-            [0, 0, 0],  # joint axis, in child link frame
-            [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
-            init_xyz
-            # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
-        )
-
-        # create data logger object
-        self.logger = DataSimLogger(conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
-
-        # take ref frame 
-        ref_frame, _ = self.allsight.render()
-
-        ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
-
-        if conf['save']:
-            ref_frame[0] = cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB)
-            if not cv2.imwrite(ref_img_color_path, ref_frame[0]):
-                raise Exception("Could not write image")
-
-        frame_count = 0
-
-        Q = np.linspace(0, 2 * np.pi, conf['N'])
-
-        for q in Q:
-
-            for i in range(conf['start_from'], self.HH + 5 - 1, 1):
-
-                if i == self.HH: continue
-
-                f_push = 80 if i < self.HH else 70
-
-                push_point_start, push_point_end = self.get_push_point_by_index(q, i)
-                self._obj_x = push_point_start[0][0]
-                self._obj_y = push_point_start[0][1]
-                self._obj_z = push_point_start[0][2]
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=f_push)
-
-                # get image data
-                color, depth = self.allsight.render()  # depth = gel deformation [meters]
-                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
-
-                self._obj_x = push_point_end[0][0]
-                self._obj_y = push_point_end[0][1]
-                self._obj_z = push_point_end[0][2]
-
-                pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=f_push)
-                color, depth = self.allsight.render()  # depth = gel deformation [meters]
-                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
-
-                time.sleep(0.03)
-                color, depth = self.allsight.render()  # depth = gel deformation [meters]
-                self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
-
-                pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
-                pose[0] -= np.sign(pose[0]) * 0.002  # radi
-                pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                pose[2] -= self.start_h + 0.006
-
-                orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
-                force = self.allsight.get_force('cam0')['2_-1']
-
-                color_img = color[0]
-                depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
-                self.logger.append(i,
-                                   np.interp(q, [0, 2 * np.pi], [0, 1]),
-                                   color_img, depth_img, pose, orient, force, frame_count)
-
-                # get object-base-pose in relation to world frame and normal-force
-                # print(f'frame count : {frame_count}\n'
-                #       f'theta : {np.rad2deg(q)} \n'
-                #       f'Indenter position: {pose} \t Indenter force: {force}\n')
-                # print(pose)
-                frame_count += 1
-
-                # self._obj_x = push_point_start[0][0]
-                # self._obj_y = push_point_start[0][1]
-                # self._obj_z = push_point_start[0][2]
-                # pyb.changeConstraint(self.cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=70)
-                # color, depth = self.allsight.render()  # depth = gel deformation [meters]
-                # self.allsight.updateGUI(color, depth)  # updateGUI convert depth into gray image
-
-            if conf['save']: self.logger.save_batch_images()
-
-        self.logger.save_data_dict()
 
 #     def create_finger_geometry(self, Nc: int = 30, Mc: int = 5, Mr: int = 5, display: bool = False):
 #         '''Calculate sensor geomtry
@@ -357,8 +347,8 @@ class Simulator:
 #
 #                 rot = R.from_matrix(rot[:3, :3]).as_quat()
 #
-#                 self.push_points_end.append([[H[0], H[1], H[2]], [rot]])
-#                 self.push_points_start.append([[H2[0], H2[1], H2[2]], [rot]])
+#                 self.push_points_end.append([[H[0], H[1], H[2]], rot.tolist()])
+#                 self.push_points_start.append([[H2[0], H2[1], H2[2]], rot.tolist()])
 #
 #         # Sphere push points
 #         phi = np.linspace(0, np.pi / 2, Mr)
@@ -386,8 +376,8 @@ class Simulator:
 #
 #                 rot = R.from_matrix(rot).as_quat()
 #
-#                 self.push_points_end.append([[B[0], B[1], B[2]], [rot]])
-#                 self.push_points_start.append([[B2[0], B2[1], B2[2]], [rot]])
+#                 self.push_points_end.append([[B[0], B[1], B[2]], rot.tolist()])
+#                 self.push_points_start.append([[B2[0], B2[1], B2[2]], rot.tolist()])
 #
 #         # # display
 #         if display:
@@ -444,8 +434,8 @@ class Simulator:
 #
 #             rot = R.from_matrix(rot[:3, :3]).as_quat()
 #
-#             push_point_end = [[H[0], H[1], H[2]], [rot]]
-#             push_point_start = [[H2[0], H2[1], H2[2]], [rot]]
+#             push_point_end = [[H[0], H[1], H[2]], rot.tolist()]
+#             push_point_start = [[H2[0], H2[1], H2[2]], rot.tolist()]
 #
 #         else:
 #             phi = np.linspace(0, np.pi / 2, self.M)[::-1][i - 1]
@@ -471,8 +461,8 @@ class Simulator:
 #
 #             rot = R.from_matrix(rot).as_quat()
 #
-#             push_point_end = [[B[0], B[1], B[2]], [rot]]
-#             push_point_start = [[B2[0], B2[1], B2[2]], [rot]]
+#             push_point_end = [[B[0], B[1], B[2]], rot.tolist()]
+#             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 #
 #         return push_point_start, push_point_end
 #

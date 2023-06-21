@@ -42,11 +42,11 @@ def main(cfg):
     start_from = 11
     up_to = 11
 
-    indenter = 'cube'
+    indenter = '20'
     leds = 'rgbrgbrgb'
     gel = 'clear'
-    N = 57
-    save = True
+    N = 20
+    save = False
 
     summary = {'method': 'press',
                'save': save,

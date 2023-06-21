@@ -32,7 +32,7 @@ def main(cfg, blur=True, is_bg=True):
                           summary=summary,
                           with_bg=False)
     simulator.create_env(cfg, obj_id='20')
-    simulator.run_sim()
+    simulator.run_sim2()
 
 
 if __name__ == "__main__":
