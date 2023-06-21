@@ -55,22 +55,22 @@ class Simulator:
 
         # bg image
         leds = summary['leds']
-
         bg = cv2.imread(f"conf/ref_frame_{leds}.jpg")
         conf_path = f"conf/config_allsight_{leds}.yml"
 
         # initialize allsight
-        # TODO: modify to support different leds
         self.allsight = allsight_wrapper.Sensor(
             **cfg.tacto, **{"config_path": conf_path},
             background=bg if with_bg else None
         )
 
-        self.summary = summary
-        self.HH = 20
+        self.cyl_split = summary['cyl_split']
+        self.top_split = summary['top_split']
+        self.angle_split = summary['angle_split']
+
+        # TODO should be constant
         self.start_h = 0.012
-        #                    x  y  z              h      r
-        self.finger_props = [0, 0, self.start_h, 0.016, 0.0128]  # [m]
+        self.finger_props = [0, 0, self.start_h, 0.016, 0.0128]
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -96,8 +96,10 @@ class Simulator:
 
         # object body 
         # take the urdf path with the relevant id given
-        # obj_urdf_path = f"../assets/objects/sphere_{obj_id}.urdf"
-        obj_urdf_path = f"../assets/objects/cube_small.urdf"
+        if obj_id in ['20', '30', '25']:
+            obj_urdf_path = f"../assets/objects/sphere_{obj_id}.urdf"
+        elif obj_id in ['cube', 'rect', 'ellipse']:
+            obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
@@ -166,15 +168,15 @@ class Simulator:
 
         frame_count = 0
 
-        Q = np.linspace(0, 2 * np.pi, conf['N'])
+        Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
 
         for q in Q:
 
-            for i in range(conf['start_from'], self.HH + 5 - 1, 1):
+            for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
 
-                if i == self.HH: continue
+                if i == self.cyl_split: continue
 
-                f_push = 80 if i < self.HH else 70
+                # f_push = 80 if i < self.cyl_split else 70
 
                 push_point_start, push_point_end = self.get_push_point_by_index(q, i)
 
@@ -204,15 +206,17 @@ class Simulator:
                 self.allsight.updateGUI(color, depth)
 
                 pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
-                # pose[0] -= np.sign(pose[0]) * 0.002  # radi
-                # pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                # pose[2] -= self.start_h + 0.006
+
+                pose[0] -= np.sign(pose[0]) * 0.002  # radi
+                pose[1] -= np.sign(pose[1]) * 0.002  # radi
+                pose[2] -= self.start_h + 0.006
 
                 orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
                 force = self.allsight.get_force('cam0')['2_-1']
 
                 color_img = color[0]
                 depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
+
                 self.logger.append(i, np.interp(q, [0, 2 * np.pi], [0, 1]),
                                    color_img, depth_img, pose, orient, force, frame_count)
 
@@ -241,10 +245,8 @@ class Simulator:
                 end point for press process [xyz]
         '''
 
-        # TODO: should take everything from conf
-
         G = 2
-        H_cyl = np.linspace(0, self.finger_props[3], self.HH)
+        H_cyl = np.linspace(0, self.finger_props[3], self.cyl_split)
 
         if i < len(H_cyl):
 
@@ -273,7 +275,7 @@ class Simulator:
 
         else:
 
-            phi = np.linspace(0, np.pi / 2, 5)[::-1][i - len(H_cyl)]
+            phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
             fix = 0.15e-3 if phi < np.pi/2.2 else 0.5e-3
 
@@ -302,229 +304,3 @@ class Simulator:
 
         return push_point_start, push_point_end
 
-#     def create_finger_geometry(self, Nc: int = 30, Mc: int = 5, Mr: int = 5, display: bool = False):
-#         '''Calculate sensor geomtry
-#
-#         Parameters
-#         ----------
-#         Nc : int, optional
-#             _description_, by default 30
-#         Mc : int, optional
-#             _description_, by default 5
-#         Mr : int, optional
-#             _description_, by default 5
-#         display : bool, optional
-#             Display geomtry 3d plot, by default False
-#         '''
-#         self.start_h = 0
-#         G = 2
-#         # Init data dictionary
-#         self.push_points_end = []
-#         self.push_points_start = []
-#         self.theta = np.linspace(0, 2 * np.pi, Nc)
-#         self.H = np.linspace(self.start_h, self.finger_props[3] + self.start_h, Mc)
-#
-#         for j, h in enumerate(self.H):
-#
-#             for i, q in enumerate(self.theta):
-#                 H = np.asarray([
-#                     self.finger_props[0] + self.finger_props[4] * np.cos(q),
-#                     self.finger_props[1] + self.finger_props[4] * np.sin(q),
-#                     self.finger_props[2] + h,
-#                 ])
-#
-#                 H2 = np.asarray([
-#                     self.finger_props[0] + self.finger_props[4] * G * np.cos(q),
-#                     self.finger_props[1] + self.finger_props[4] * G * np.sin(q),
-#                     self.finger_props[2] + h,
-#                 ])
-#
-#                 Rz = rotation_matrix(q, zaxis)
-#                 Rt = rotation_matrix(np.pi, zaxis)
-#                 Rx = rotation_matrix(np.pi, xaxis)
-#
-#                 rot = concatenate_matrices(Rz, Rt, Rx)[:3, :3]
-#
-#                 rot = R.from_matrix(rot[:3, :3]).as_quat()
-#
-#                 self.push_points_end.append([[H[0], H[1], H[2]], rot.tolist()])
-#                 self.push_points_start.append([[H2[0], H2[1], H2[2]], rot.tolist()])
-#
-#         # Sphere push points
-#         phi = np.linspace(0, np.pi / 2, Mr)
-#
-#         for j, p in reversed(list(enumerate(phi))):
-#             for i, q in enumerate(self.theta):
-#                 B = np.asarray([
-#                     self.finger_props[4] * np.sin(p) * np.cos(q),
-#                     self.finger_props[4] * np.sin(p) * np.sin(q),
-#                     self.finger_props[3] + self.finger_props[4] * np.cos(p),
-#                 ])
-#
-#                 B2 = np.asarray([
-#                     self.finger_props[4] * G * np.sin(p) * np.cos(q),
-#                     self.finger_props[4] * G * np.sin(p) * np.sin(q),
-#                     self.finger_props[3] + self.finger_props[4] * G * np.cos(p),
-#                 ])
-#
-#                 Ry = rotation_matrix(p, yaxis)
-#                 Rz = rotation_matrix(q, zaxis)
-#                 Rt = rotation_matrix(np.pi / 2, yaxis)
-#                 Rx = rotation_matrix(np.pi, xaxis)
-#
-#                 rot = concatenate_matrices(Rz, Ry, Rt)[:3, :3]
-#
-#                 rot = R.from_matrix(rot).as_quat()
-#
-#                 self.push_points_end.append([[B[0], B[1], B[2]], rot.tolist()])
-#                 self.push_points_start.append([[B2[0], B2[1], B2[2]], rot.tolist()])
-#
-#         # # display
-#         if display:
-#             from matplotlib import pyplot as plt
-#             fig = plt.figure(figsize=(15, 15))
-#             ax = fig.add_subplot(111, projection='3d')
-#             for x in range(len(self.push_points_start)):
-#                 ax.plot(*self.push_points_end[x][0], 'go')
-#                 ax.plot(*self.push_points_start[x][0], 'ro')
-#
-#             plt.draw()
-#             plt.show()
-#
-#     def get_push_point(self, q: float, h: float, i: int) -> Any:
-#         '''Get start and end points for every press process
-#
-#         Parameters
-#         ----------
-#         q : float
-#             angle id
-#         h : float
-#             hight id
-#         i : int
-#             _description_
-#
-#         Returns
-#         -------
-#         Any
-#             push_point_start : list
-#                 starting point for press process [xyz]
-#             push_point_end : list
-#                 end point for press process [xyz]
-#         '''
-#
-#         G = 2
-#         if i <= self.M // 2:
-#             H = np.asarray([
-#                 self.finger_props[0] + self.finger_props[4] * np.cos(q),
-#                 self.finger_props[1] + self.finger_props[4] * np.sin(q),
-#                 self.finger_props[2] + h,
-#             ])
-#
-#             H2 = np.asarray([
-#                 self.finger_props[0] + self.finger_props[4] * G * np.cos(q),
-#                 self.finger_props[1] + self.finger_props[4] * G * np.sin(q),
-#                 self.finger_props[2] + h,
-#             ])
-#
-#             Rz = rotation_matrix(q, zaxis)
-#             Rt = rotation_matrix(np.pi, zaxis)
-#             Rx = rotation_matrix(np.pi, xaxis)
-#
-#             rot = concatenate_matrices(Rz, Rt, Rx)[:3, :3]
-#
-#             rot = R.from_matrix(rot[:3, :3]).as_quat()
-#
-#             push_point_end = [[H[0], H[1], H[2]], rot.tolist()]
-#             push_point_start = [[H2[0], H2[1], H2[2]], rot.tolist()]
-#
-#         else:
-#             phi = np.linspace(0, np.pi / 2, self.M)[::-1][i - 1]
-#
-#             B = np.asarray([
-#                 self.finger_props[4] * np.sin(phi) * np.cos(q),
-#                 self.finger_props[4] * np.sin(phi) * np.sin(q),
-#                 self.finger_props[3] + self.finger_props[4] * np.cos(phi),
-#             ])
-#
-#             B2 = np.asarray([
-#                 self.finger_props[4] * G * np.sin(phi) * np.cos(q),
-#                 self.finger_props[4] * G * np.sin(phi) * np.sin(q),
-#                 self.finger_props[3] + self.finger_props[4] * G * np.cos(phi),
-#             ])
-#
-#             Ry = rotation_matrix(phi, yaxis)
-#             Rz = rotation_matrix(q, zaxis)
-#             Rt = rotation_matrix(np.pi / 2, yaxis)
-#             Rx = rotation_matrix(np.pi, xaxis)
-#
-#             rot = concatenate_matrices(Rz, Ry, Rt)[:3, :3]
-#
-#             rot = R.from_matrix(rot).as_quat()
-#
-#             push_point_end = [[B[0], B[1], B[2]], rot.tolist()]
-#             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
-#
-#         return push_point_start, push_point_end
-#
-#     def render_ball_at(self, angle: float, h: float, point: int) -> np.ndarray:
-#         '''Takes the image from the sensor so that the sphere
-#         is at the desired point depending on the given parameters
-#
-#         Parameters
-#         ----------
-#         angle : float
-#             angle id (a.k.a 'q')
-#         h : float
-#             hight id
-#         point : int
-#             _description_ (a.k.a 'i')
-#
-#         Returns
-#         -------
-#         np.ndarray
-#             color image
-#         '''
-#         # get the start and end points
-#         push_point_start, push_point_end = self.get_push_point(angle, h + 0.016, point)
-#
-#         self._obj_x = push_point_start[0][0]
-#         self._obj_y = push_point_start[0][1]
-#         self._obj_z = push_point_start[0][2]
-#
-#         # reset the sphere pos to the start pos
-#         pyb.resetBasePositionAndOrientation(self.obj.id, [self._obj_x, self._obj_y, self._obj_z], [0, 0, 0, 1])
-#
-#         cid = pyb.createConstraint(
-#             self.obj.id,  # parent body unique id
-#             -1,  # parent link index (or -1 for the base)
-#             -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
-#             -1,  # child link index, or -1 for the base
-#             pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
-#             [0, 0, 0],  # joint axis, in child link frame
-#             [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
-#             [self._obj_x, self._obj_y, self._obj_z]
-#             # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
-#         )
-#
-#         # render. need to check where to put this line
-#         color, depth = self.allsight.render()  # depth = gel deformation [meters]
-#
-#         # if you want to see the sensor camera visualization - uncomment the row below
-#         self.allsight.updateGUI(color, depth)
-#
-#         # if you want to debug the sphere pos - uncomment the rows below
-#         # pose = p.getBasePositionAndOrientation(self.obj.id)[0][:3]
-#         # print(pose)
-#
-#         self._obj_x = push_point_end[0][0]
-#         self._obj_y = push_point_end[0][1]
-#         self._obj_z = push_point_end[0][2]
-#
-#         pyb.changeConstraint(cid, [self._obj_x, self._obj_y, self._obj_z], maxForce=80)
-#         # time.sleep(0.05)
-#
-#         color, depth = self.allsight.render()  # depth = gel deformation [meters]
-#
-#         self.allsight.updateGUI(color, depth)
-#
-#         return color[0]

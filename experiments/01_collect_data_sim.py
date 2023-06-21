@@ -40,19 +40,24 @@ def main(cfg):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     start_from = 11
-    up_to = 11
+    up_to = 50
 
-    indenter = '20'
+    indenter = 'ellipse'
     leds = 'rgbrgbrgb'
     gel = 'clear'
-    N = 20
+
+    angle_split = 20
+    cyl_split = 20
+    top_split = 5
     save = False
 
     summary = {'method': 'press',
                'save': save,
                'up_to': up_to,
                'start_from': start_from,
-               'N': N,
+               'angle_split': angle_split,
+               'cyl_split': cyl_split,
+               'top_split': top_split,
                'leds': leds,
                'indenter': indenter,
                'gel': gel}
