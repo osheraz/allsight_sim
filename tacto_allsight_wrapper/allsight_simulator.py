@@ -64,10 +64,6 @@ class Simulator:
             background=bg if with_bg else None
         )
 
-        self.cyl_split = summary['cyl_split']
-        self.top_split = summary['top_split']
-        self.angle_split = summary['angle_split']
-
         # TODO should be constant
         self.start_h = 0.012
         self.finger_props = [0, 0, self.start_h, 0.016, 0.0128]
@@ -136,6 +132,10 @@ class Simulator:
 
         # start the simulation thread 
         self.start()
+
+        self.cyl_split = conf['cyl_split']
+        self.top_split = conf['top_split']
+        self.angle_split = conf['angle_split']
 
         # create constraints
         (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()

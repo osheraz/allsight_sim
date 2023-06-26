@@ -42,8 +42,8 @@ def main(cfg):
     start_from = 11
     up_to = 50
 
-    indenter = 'ellipse'
-    leds = 'rgbrgbrgb'
+    indenter = '25'
+    leds = 'rrrgggbbb'
     gel = 'clear'
 
     angle_split = 20
