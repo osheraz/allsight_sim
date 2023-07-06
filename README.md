@@ -40,6 +40,11 @@ NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``
 
 NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``` is set to ```collect_data```, and adjust the params on the ```summary/collect_data.yaml``` as you like.
 
+---
+
+## License
+
+This project is licensed under MIT license, as found in the [LICENSE](LICENSE) file.
 
 
 
