@@ -8,4 +8,4 @@ defaults:
   - summary: demo # demo | collect_data
   - override hydra/job_logging: default # disabled | default
 
-
+with_bg: True # add background refrence frame

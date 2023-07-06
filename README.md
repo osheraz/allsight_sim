@@ -28,14 +28,21 @@ pip install -r requirements/requirements.txt
 
 ## Usage 
 
+- [experiments/00_demo_pybullet_allsight.py](experiments/00_demo_pybullet_allsight.py): rendering RGB and Depth readings with Allsight sensor.
+
+**gif**
+
+NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``` is set to ```demo```, and adjust the params on the ```summary/demo.yaml``` as you like.
+
+- [experiments/01_collect_data_sim.py](experiments/01_collect_data_sim.py): rendering RGB and Depth readings with Allsight sensor.
+
+**gif**
+
+NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``` is set to ```collect_data```, and adjust the params on the ```summary/collect_data.yaml``` as you like.
 
 
-## Helpful Links
 
-- [TACTO](https://github.com/facebookresearch/tacto)
-- [pybullet](https://github.com/bulletphysics/bullet3/tree/master/examples/pybullet)
-- [PyBulletQuickstartGuide](https://github.com/bulletphysics/bullet3/blob/master/docs/pybullet_quickstart_guide/PyBulletQuickstartGuide.md.html)
-- [pybulletX](https://github.com/facebookresearch/pybulletX)
+
 
 
 

@@ -33,7 +33,7 @@ def main(cfg):
 
     simulator = Simulator(cfg=cfg.allsight,
                           summary=summary,
-                          with_bg=True)
+                          with_bg=cfg.with_bg)
     simulator.create_env(cfg.allsight, summary["indenter"])
     simulator.run_sim()
 
