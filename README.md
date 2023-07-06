@@ -32,7 +32,7 @@ pip install -r requirements/requirements.txt
 
 ![](website/gif/allsight_demo.gif)
 
-
+![](website/gif/allsight_demo_rect.gif)
 
 
 - [experiments/01_collect_data_sim.py](experiments/01_collect_data_sim.py): rendering RGB and Depth readings with Allsight sensor.
