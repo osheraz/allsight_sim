@@ -66,7 +66,7 @@ class Simulator:
 
         # TODO should be constant
         self.start_h = 0.012
-        self.finger_props = [0, 0, self.start_h, 0.016, 0.0128]
+        self.finger_props = [0, 0, self.start_h, 0.016, 0.012]
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -88,6 +88,9 @@ class Simulator:
             pyb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
         )
 
+        # pyb.connect(pyb.DIRECT)
+        # pyb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+
         self.body = px.Body(**cfg.allsight)
 
         # object body 
@@ -100,7 +103,7 @@ class Simulator:
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
         # set start pose
-        self.obj.set_base_pose([0, 0, 0.056])
+        self.obj.set_base_pose([0, 0.056, 0.056])
         self.allsight.add_body(self.obj)
 
         # camera body
@@ -130,7 +133,7 @@ class Simulator:
 
     def collect_data(self, conf):
 
-        # start the simulation thread 
+        # start the simulation thread
         self.start()
 
         self.cyl_split = conf['cyl_split']
@@ -141,22 +144,22 @@ class Simulator:
         (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
         init_xyz = [self._obj_x, self._obj_y, self._obj_z]
 
-        self.cid = pyb.createConstraint(
-            self.obj.id,  # parent body unique id
-            -1,  # parent link index (or -1 for the base)
-            -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
-            -1,  # child link index, or -1 for the base
-            pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
-            [0, 0, 0],  # joint axis, in child link frame
-            [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
-            init_xyz
-            # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
-        )
+        # self.cid = pyb.createConstraint(
+        #     self.obj.id,  # parent body unique id
+        #     -1,  # parent link index (or -1 for the base)
+        #     -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
+        #     -1,  # child link index, or -1 for the base
+        #     pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
+        #     [0, 0, 0],  # joint axis, in child link frame
+        #     [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
+        #     init_xyz
+        #     # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
+        # )
 
         # create data logger object
         self.logger = DataSimLogger(conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
 
-        # take ref frame 
+        # take ref frame
         ref_frame, _ = self.allsight.render()
 
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
@@ -169,58 +172,80 @@ class Simulator:
         frame_count = 0
 
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
+        current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
+        current_euler = pyb.getEulerFromQuaternion(current_quat)
 
         for q in Q:
 
             for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
 
+                removed = False
                 if i == self.cyl_split: continue
 
                 # f_push = 80 if i < self.cyl_split else 70
 
-                push_point_start, push_point_end = self.get_push_point_by_index(q, i)
+                # Calculate the new orientation by adding the desired rotation
+                new_euler = [current_euler[0], current_euler[1], current_euler[2] + q]
+                new_quat = pyb.getQuaternionFromEuler(new_euler)
+
+                self.body.set_base_pose(position=current_pos, orientation=new_quat)
+                pyb.stepSimulation()
 
                 # pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
                 #                      jointChildFrameOrientation=push_point_start[1],
                 #                      maxForce=f_push)
 
-                pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
-                                     childFramePosition=push_point_start[0], childFrameOrientation=push_point_start[1])
+                push_point_start, push_point_end = self.get_push_point_by_index(0, i)
+
+                self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
+                                                childFramePosition=push_point_start[0],
+                                                childFrameOrientation=push_point_start[1])
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
-                time.sleep(0.01)
+                time.sleep(0.1)
 
+                pyb.removeConstraint(self.cid)
                 # pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
                 #                      jointChildFrameOrientation=push_point_end[1],
                 #                      maxForce=f_push)
 
-                pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
-                                     childFramePosition=push_point_end[0], childFrameOrientation=push_point_end[1])
+                self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
+                                                childFramePosition=push_point_end[0],
+                                                childFrameOrientation=push_point_end[1])
 
-                color, depth = self.allsight.render()
-                self.allsight.updateGUI(color, depth)
+                for _ in range(5):
 
-                time.sleep(0.01)
-                color, depth = self.allsight.render()
-                self.allsight.updateGUI(color, depth)
+                    color, depth = self.allsight.render()
+                    time.sleep(0.05)
 
-                pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
+                    if np.sum(depth):
+                        self.allsight.updateGUI(color, depth)
 
-                pose[0] -= np.sign(pose[0]) * 0.002  # radi
-                pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                pose[2] -= self.start_h + 0.006
+                        # time.sleep(0.05)
+                        pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
-                orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
-                force = self.allsight.get_force('cam0')['2_-1']
+                        pose[0] -= np.sign(pose[0]) * 0.002  # radi
+                        pose[1] -= np.sign(pose[1]) * 0.002  # radi
+                        pose[2] -= self.start_h + 0.006
 
-                color_img = color[0]
-                depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
+                        orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
+                        force = self.allsight.get_force('cam0')['2_-1']
 
-                self.logger.append(i, np.interp(q, [0, 2 * np.pi], [0, 1]),
-                                   color_img, depth_img, pose, orient, force, frame_count)
+                        color_img = color[0]
+                        depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
-                frame_count += 1
+                        self.logger.append(i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                                           color_img, depth_img, pose, orient, force, frame_count)
+
+                        frame_count += 1
+                        pyb.removeConstraint(self.cid)
+                        removed = True
+                        break
+
+                if not removed:
+                    pyb.removeConstraint(self.cid)
+                    removed = True
 
             if conf['save']: self.logger.save_batch_images()
 
@@ -277,12 +302,12 @@ class Simulator:
 
             phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
-            fix = 0.15e-3 if phi < np.pi/2.2 else 0.5e-3
+            fix = 0.15e-3 if phi < np.pi / 2.2 else 0.5e-3
 
             B = np.asarray([
                 self.finger_props[4] * np.sin(phi) * np.cos(q) + fix,
                 self.finger_props[4] * np.sin(phi) * np.sin(q) + fix,
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi)+ fix,
+                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi) + fix,
             ])
 
             B2 = np.asarray([
@@ -303,4 +328,3 @@ class Simulator:
             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
-

@@ -41,15 +41,16 @@ def main(cfg):
 
     start_from = 11
     up_to = 50
+    # ['cube', 'rect', 'ellipse']
 
-    indenter = '25'
+    indenter = 'ellipse'
     leds = 'rrrgggbbb'
     gel = 'clear'
 
     angle_split = 20
     cyl_split = 20
     top_split = 5
-    save = False
+    save = True
 
     summary = {'method': 'press',
                'save': save,

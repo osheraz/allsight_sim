@@ -37,10 +37,10 @@ class DataSimLogger():
 
     def append(self, i, q, frame, depth, trans, rot, ft, count):
 
-        img_id = 'image{}_{:.2f}_{:.2f}.jpg'.format(i, q, count)
+        img_id = 'image{}_{}_{:.2f}.jpg'.format(count, i, q)
         img_path = os.path.join(self.dataset_path_images_rgb, img_id)
 
-        depth_id = 'depth{}_{:.2f}_{:.2f}.jpg'.format(i, q, count)
+        depth_id = 'depth{}_{}_{:.2f}.jpg'.format(count , i, q)
         depth_path = os.path.join(self.dataset_path_images_depth, depth_id)
 
         self.img_press_dict[img_path] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
