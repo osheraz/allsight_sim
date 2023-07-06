@@ -30,15 +30,17 @@ pip install -r requirements/requirements.txt
 
 - [experiments/00_demo_pybullet_allsight.py](experiments/00_demo_pybullet_allsight.py): rendering RGB and Depth readings with Allsight sensor.
 
-**gif**
+![](website/gif/allsight_demo.gif)
 
-NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``` is set to ```demo```, and adjust the params on the ```summary/demo.yaml``` as you like.
+
+
 
 - [experiments/01_collect_data_sim.py](experiments/01_collect_data_sim.py): rendering RGB and Depth readings with Allsight sensor.
 
-**gif**
+![](website/gif/allsight_collect_data.gif)
 
-NOTE: make sure ```summary``` param at the defaults list on ```experiment.yaml``` is set to ```collect_data```, and adjust the params on the ```summary/collect_data.yaml``` as you like.
+
+NOTE: Adjust simulation parameters on [experiments/conf](experiments/conf) folder. 
 
 ---
 
