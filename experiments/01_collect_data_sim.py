@@ -28,8 +28,6 @@ from omegaconf import DictConfig, OmegaConf
 OmegaConf.register_new_resolver("path", lambda : PATH)
 
 log = logging.getLogger(__name__)
-origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
-
 
 # Load the config YAML file from experiments/conf/allsight.yaml
 @hydra.main(config_path="conf", config_name="experiment")
@@ -50,11 +48,10 @@ def main(cfg):
                         with_bg=cfg.with_bg)
 
     # create env
-    simulator.create_env(cfg, obj_id=summary["indenter"])
+    simulator.create_env(cfg.allsight, obj_id=summary["indenter"])
 
     # collect data
     simulator.collect_data(summary)
-
 
 if __name__ == "__main__":
     main()

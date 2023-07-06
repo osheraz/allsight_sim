@@ -13,5 +13,5 @@ tacto.egg-info/
 *.pickle
 *.p
 .idea
-/experiments/dataset/
-/experiments/saved_configs/
+experiments/dataset/
+experiments/conf/saved_configs

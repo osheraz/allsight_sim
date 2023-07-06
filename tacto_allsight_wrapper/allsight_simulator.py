@@ -55,8 +55,8 @@ class Simulator:
 
         # bg image
         leds = summary['leds']
-        bg = cv2.imread(f"conf/ref/ref_frame_{leds}.jpg")
-        conf_path = f"conf/sensor/config_allsight_{leds}.yml"
+        bg = cv2.imread(os.path.join(PATH,f"experiments/conf/ref/ref_frame_{leds}.jpg"))
+        conf_path = os.path.join(PATH,f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
         self.allsight = allsight_wrapper.Sensor(
