@@ -1,9 +1,9 @@
-defaults:
-  - override hydra/job_logging: disabled
+# defaults:
+#   - override hydra/job_logging: disabled
 
-hydra:
-  run:
-    dir: .././
+# hydra:
+#   run:
+#     dir: .././
 
 tacto:
   width: 480

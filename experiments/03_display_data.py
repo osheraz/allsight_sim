@@ -28,10 +28,7 @@ buffer_paths = []
 for p in paths:
     buffer_paths += [y for x in os.walk(p) for y in glob(os.path.join(x[0], '*.json'))]
 
-buffer_paths = [p for p in buffer_paths if ('transformed' not in p) and
-                                           ('final' not in p) and
-                                           ('summary' not in p)
-                ]
+buffer_paths = [p for p in buffer_paths if ('summary' not in p)]
 
 j_i = 0
 for JSON_FILE in buffer_paths:
@@ -118,44 +115,6 @@ for JSON_FILE in buffer_paths:
 
     fig.savefig(JSON_FILE[:-5] + '_pose_side', dpi=200, bbox_inches='tight')
 
-
-
     plt.close('all')
     print('Finished to transform the data.\n')
 
-# buffer_paths = [p for p in buffer_paths if 'summary' not in p]
-# j_i = 0
-# for JSON_FILE in buffer_paths:
-#     print(f'transforming dataset: {JSON_FILE[-58:]} \t {j_i}/{len(buffer_paths)}')
-#     df_data = pd.read_json(JSON_FILE).transpose()
-#     j_i += 1
-#     for i in df_data.index:
-#         df_data.loc[i].frame = df_data.loc[i].frame.replace(f'/{leds}', f'/markers/{leds}')
-#         df_data.loc[i].ref_frame = df_data.loc[i].ref_frame.replace(f'/{leds}', f'/markers/{leds}')
-#
-#     save = True
-#     if save:
-#         import json
-#
-#         to_dict = {}
-#         for index, row in list(df_data.iterrows()):
-#             to_dict[index] = dict(row)
-#         with open(JSON_FILE, 'w') as json_file:
-#             json.dump(to_dict, json_file, indent=3)
-
-# buffer_paths = [p for p in buffer_paths if 'summary' in p]
-# j_i = 0
-# for JSON_FILE in buffer_paths:
-#     print(f'transforming dataset: {JSON_FILE} \t {j_i}/{len(buffer_paths)}')
-#     with open(JSON_FILE, 'rb') as handle:
-#         summ = json.load(handle)
-#
-#     j_i += 1
-#
-#     summ["sensor_id"] = 9
-#     save = True
-#     if save:
-#         import json
-#
-#         with open(JSON_FILE, 'w') as json_file:
-#             json.dump(summ, json_file, indent=3)

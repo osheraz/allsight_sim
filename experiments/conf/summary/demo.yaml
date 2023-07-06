@@ -1,0 +1,3 @@
+name: demo
+leds: rrrgggbbb 
+indenter: '20' # for sphere choose : '20'/'30'/'40' | cube | rect |  ellipse

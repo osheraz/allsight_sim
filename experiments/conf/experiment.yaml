@@ -1,0 +1,11 @@
+hydra:
+  run:
+    dir: ${path:}/experiments/conf/saved_configs/${summary.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+
+defaults:
+  - _self_
+  - allsight: allsight
+  - summary: demo # demo | collect_data
+  - override hydra/job_logging: default # disabled | default
+
+

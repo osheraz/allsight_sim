@@ -6,6 +6,7 @@ import logging
 import threading
 import time
 import hydra
+
 import pybullet as p
 
 import cv2
@@ -20,18 +21,20 @@ PATH = os.path.join(os.path.dirname(__file__), '../')
 sys.path.insert(0, PATH)
 from tacto_allsight_wrapper.allsight_simulator import Simulator
 
+from omegaconf import DictConfig, OmegaConf
+OmegaConf.register_new_resolver("path", lambda : PATH)
 
 # Load the config YAML file from experiments/conf/allsight.yaml
-@hydra.main(config_path="conf", config_name="allsight")
-def main(cfg, blur=True, is_bg=True):
+@hydra.main(config_path="conf", config_name="experiment")
+def main(cfg):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    summary = {'leds': 'rrrgggbbb'}
+    summary = OmegaConf.to_container(cfg.summary)
 
-    simulator = Simulator(cfg=cfg,
+    simulator = Simulator(cfg=cfg.allsight,
                           summary=summary,
-                          with_bg=False)
-    simulator.create_env(cfg, obj_id='20')
+                          with_bg=True)
+    simulator.create_env(cfg.allsight, summary["indenter"])
     simulator.run_sim()
 
 

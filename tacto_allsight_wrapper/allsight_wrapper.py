@@ -175,7 +175,7 @@ class Renderer(Renderer):
             self.scene_depth.add_node(light_node_depth)
 
 
-C_PATH = os.path.join(os.path.dirname(__file__)) + "../examples/conf"
+C_PATH = os.path.join(os.path.dirname(__file__)) + "../experiments/conf/sensor"
 
 
 def _get_default_config(filename):

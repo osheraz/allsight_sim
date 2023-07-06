@@ -24,12 +24,15 @@ PATH = os.path.join(os.path.dirname(__file__), '../')
 sys.path.insert(0, PATH)
 from tacto_allsight_wrapper.allsight_simulator import Simulator
 
+from omegaconf import DictConfig, OmegaConf
+OmegaConf.register_new_resolver("path", lambda : PATH)
+
 log = logging.getLogger(__name__)
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
 
 # Load the config YAML file from experiments/conf/allsight.yaml
-@hydra.main(config_path="conf", config_name="allsight")
+@hydra.main(config_path="conf", config_name="experiment")
 def main(cfg):
     """Main program
     Args:
@@ -39,37 +42,15 @@ def main(cfg):
     # start script from the path of the paraent dir
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    start_from = 11
-    up_to = 50
-    # ['cube', 'rect', 'ellipse']
-
-    indenter = 'ellipse'
-    leds = 'rrrgggbbb'
-    gel = 'clear'
-
-    angle_split = 20
-    cyl_split = 20
-    top_split = 5
-    save = True
-
-    summary = {'method': 'press',
-               'save': save,
-               'up_to': up_to,
-               'start_from': start_from,
-               'angle_split': angle_split,
-               'cyl_split': cyl_split,
-               'top_split': top_split,
-               'leds': leds,
-               'indenter': indenter,
-               'gel': gel}
+    summary = OmegaConf.to_container(cfg.summary)
 
     # create simulator object
-    simulator = Simulator(cfg=cfg,
-                          summary=summary,
-                          with_bg=True)
+    simulator = Simulator(cfg=cfg.allsight,
+                        summary=summary,
+                        with_bg=True)
 
     # create env
-    simulator.create_env(cfg, obj_id=indenter)
+    simulator.create_env(cfg, obj_id=summary["indenter"])
 
     # collect data
     simulator.collect_data(summary)

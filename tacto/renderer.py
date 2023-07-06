@@ -19,7 +19,7 @@ Default is pyglet, which requires active window
 """
 
 import os
-os.environ["PYOPENGL_PLATFORM"] = "egl"
+# os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 import logging
 

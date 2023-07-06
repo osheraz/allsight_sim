@@ -8,6 +8,8 @@ hydra-core >= 1.0.6
 urdfpy >= 0.0.22
 scipy
 pybulletX >= 0.4.1
+shutup
+networkx == 2.2
 
 # Need a specific version of PyOpenGL (forked & modified by mmatl) for pyrender
 # to run headlessly using OSMesa. Otherwise, we will get python ImportError:
