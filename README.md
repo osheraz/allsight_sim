@@ -2,7 +2,7 @@
 
 ## Overview
 This package provides a simulator for a compact 3D strcutured vision-based Allsight finger sensor. It provides the Allsight model integration with [TACTO](https://github.com/facebookresearch/tacto) API simulation and a data collection process for robotic in-hand manipulation use cases.
-For more information refer to the corresponding paper **edit** ...
+For more information refer to the corresponding paper **[TODO]**
 
 ---
 ## Installation
