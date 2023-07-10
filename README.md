@@ -1,8 +1,7 @@
-# Allsight_Sim : An Open-source Simulator for Allsight Tactile Sensor
+# AllSight_Sim : TACTO implementation for the AllSight tactile Sensor
 
 ## Overview
-This package provides a simulator for a compact 3D strcutured vision-based Allsight finger sensor. It provides the Allsight model integration with [TACTO](https://github.com/facebookresearch/tacto) API simulation and a data collection process for robotic in-hand manipulation use cases.
-For more information refer to the corresponding paper **[TODO]**
+This package offers a simulation environment for a small 3D structured vision-based finger sensor called AllSight. It includes the integration of the AllSight model with the [TACTO](https://github.com/facebookresearch/tacto) API simulation, allowing for data collection and simulation of robotic in-hand manipulation scenarios. For more information refer to the corresponding [paper](https://arxiv.org/abs/2307.02928)
 
 ---
 ## Installation
@@ -48,7 +47,18 @@ NOTE: Adjust simulation parameters on [experiments/conf](experiments/conf) folde
 
 This project is licensed under MIT license, as found in the [LICENSE](LICENSE) file.
 
+## Bibtex
 
+```
+@misc{azulay2023allsight,
+      title={AllSight: A Low-Cost and High-Resolution Round Tactile Sensor with Zero-Shot Learning Capability}, 
+      author={Osher Azulay and Nimrod Curtis and Rotem Sokolovsky and Guy Levitski and Daniel Slomovik and Guy Lilling and Avishai Sintov},
+      year={2023},
+      eprint={2307.02928},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
 
 
 
