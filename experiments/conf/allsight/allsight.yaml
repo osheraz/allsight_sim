@@ -18,7 +18,7 @@ allsight:
   use_fixed_base: True
 
 object:
-  urdf_path: "../assets/objects/sphere_20.urdf"
+  urdf_path: "../assets/objects/sphere3.urdf"
   base_position: [0, 0, 0.06]
   global_scaling: 0.15
   use_fixed_base: False

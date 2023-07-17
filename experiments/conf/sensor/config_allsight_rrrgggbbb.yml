@@ -12,7 +12,7 @@ sensor:
     - cam0:
       position: [0.0113, 0.0, 0.0] # Camera position
       orientation: [90, 0 , -90] # Euler angles, "xyz", in degrees; e.g. [0, 0, 0]: towards negative z-axis; [90, 0, -90]: towards x-axis
-      yfov: 110.0  #140.8 # Vertical field of view in degrees
+      yfov: 110  #140.8 # Vertical field of view in degrees
       znear: 0.001  # Distance to the near clipping plane, in meters
       #lightIDList: [0, 1, 2, 3 ,4 ,5, 6, 7, 8] # Select light ID list for rendering (OpenGL has max limit of 8 lights)
       lightIDList: [0,1,2] 
@@ -44,26 +44,28 @@ sensor:
       coords: [[0, 0.01732, 0.01], [0, -0.01732, 0.01], [0, 0.05, 0.01]] # << wrong cartrsian coordinates
     xrtheta: # polar coordinates in y-z plane   
       xs: [0.0, 0.0, 0.0] # x coordinate of the y-z plane 
-      rs: [0.0, 0.0, 0.0] # r in polar coordinates
-      thetas: [20,140,260] #, -60, -100, -140] # theta in polar coordinates, in degrees
+      rs: [0.004, 0.004, 0.004] # r in polar coordinates
+      # rs: [0.011, 0.011, 0.011] # r in polar coordinates
 
+      thetas: [-40,80,200] #, -60, -100, -140] # theta in polar coordinates, in degrees
     colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
 #    intensities: [0.2,0.3,0.3]
-    intensities: [0.1,0.2,0.2]
+
+    intensities: [1,1,1]
 
   noise:
     color:
       mean: 0
-      std: 10
+      std: 2
 
   force:
     enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---
-    range_force: [0, 1] # dynamic range of forces used to simulate the elastomer deformation
+    range_force: [0, 10] # dynamic range of forces used to simulate the elastomer deformation
     max_deformation: 0.008 # max pose depth adjustment, in meters
 
   bg_calibration:
     enable: True
-    scale_factor: 1.0  # how much the simulated difference (between _bg_sim and bg_real) will affect the final bg image
+    scale_factor: 1  # how much the simulated difference (between _bg_sim and bg_real) will affect the final bg image
     blur:               # gaussian blur of simulated diff | include ksize and sigma values
       k_size: 5
       sigma: 1.1

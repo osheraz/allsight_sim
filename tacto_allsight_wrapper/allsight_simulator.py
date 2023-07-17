@@ -95,15 +95,15 @@ class Simulator:
 
         # object body 
         # take the urdf path with the relevant id given
-        if obj_id in ['20', '30', '25']:
-            obj_urdf_path = f"../assets/objects/sphere_{obj_id}.urdf"
+        if obj_id in ['sphere3', 'sphere4', 'sphere5']:
+            obj_urdf_path = f"../assets/objects/{obj_id}.urdf"
         elif obj_id in ['cube', 'rect', 'ellipse']:
             obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
         # set start pose
-        self.obj.set_base_pose([0, 0.056, 0.056])
+        self.obj.set_base_pose([0, 0, 0.056])
         self.allsight.add_body(self.obj)
 
         # camera body
@@ -157,7 +157,7 @@ class Simulator:
         # )
 
         # create data logger object
-        self.logger = DataSimLogger(conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
+        self.logger = DataSimLogger(conf["save_prefix"],conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
 
         # take ref frame
         ref_frame, _ = self.allsight.render()
@@ -235,7 +235,7 @@ class Simulator:
                         color_img = color[0]
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
-                        self.logger.append(i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                        self.logger.append(conf["save_prefix"],i, np.interp(q, [0, 2 * np.pi], [0, 1]),
                                            color_img, depth_img, pose, orient, force, frame_count)
 
                         frame_count += 1

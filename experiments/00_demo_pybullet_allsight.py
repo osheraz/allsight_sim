@@ -34,8 +34,8 @@ def main(cfg):
     summary = OmegaConf.to_container(cfg.summary)
 
     simulator = Simulator(cfg=cfg.allsight,
-                          summary=summary,
-                          with_bg=cfg.with_bg)
+                        summary=summary,
+                        with_bg=cfg.with_bg)
     
     simulator.create_env(cfg.allsight, summary["indenter"])
     simulator.run_sim()

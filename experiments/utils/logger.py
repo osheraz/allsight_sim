@@ -11,7 +11,7 @@ pc_name = os.getlogin()
 
 class DataSimLogger():
 
-    def __init__(self, leds, indenter, save=True, save_depth=False):
+    def __init__(self,prefix, leds, indenter, save=True, save_depth=False):
 
         self.data_dict = {}
         self.img_press_dict = {}
@@ -20,11 +20,17 @@ class DataSimLogger():
         self.save_depth = save_depth
         # Init of the dataset dir paths with the current day and time
         self.date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S")
-        self.dataset_path_images = "dataset/{}/images/{}/img_{}".format(leds, indenter, self.date)
+        if prefix is not None:
+            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/{}_img_{}".format(leds, indenter,prefix, self.date)
+        else:
+            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/img_{}".format(leds, indenter, self.date)
         self.dataset_path_images_rgb = self.dataset_path_images
         self.dataset_path_images_depth = os.path.join(self.dataset_path_images,"depth")
 
-        self.dataset_path_data = "dataset/{}/data/{}/data_{}".format(leds, indenter, self.date)
+        if prefix is not None:
+            self.dataset_path_data = "allsight_sim_dataset/clear/{}/data/{}/{}_data_{}".format(leds, indenter,prefix, self.date)
+        else:
+            self.dataset_path_data = "allsight_sim_dataset/clear/{}/data/{}/data_{}".format(leds, indenter, self.date)
         
 
         if save:
@@ -35,12 +41,18 @@ class DataSimLogger():
 
             if not os.path.exists(self.dataset_path_data): pathlib.Path(self.dataset_path_data).mkdir(parents=True, exist_ok=True)
 
-    def append(self, i, q, frame, depth, trans, rot, ft, count):
+    def append(self,prefix, i, q, frame, depth, trans, rot, ft, count):
 
-        img_id = 'image{}_{}_{:.2f}.jpg'.format(count, i, q)
+        if prefix is not None:
+            img_id = '{}_image{}_{}_{:.2f}.jpg'.format(prefix,count, i, q)
+        else:
+            img_id = 'image{}_{}_{:.2f}.jpg'.format(count, i, q)
         img_path = os.path.join(self.dataset_path_images_rgb, img_id)
 
-        depth_id = 'depth{}_{}_{:.2f}.jpg'.format(count , i, q)
+        if prefix is not None:
+            depth_id = '{}_depth{}_{}_{:.2f}.jpg'.format(prefix,count , i, q)
+        else:
+            depth_id = 'depth{}_{}_{:.2f}.jpg'.format(count , i, q)
         depth_path = os.path.join(self.dataset_path_images_depth, depth_id)
 
         self.img_press_dict[img_path] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
