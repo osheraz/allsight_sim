@@ -18,10 +18,11 @@ The handle for OSMesa is osmesa.
 Default is pyglet, which requires active window
 """
 
-import os
+# import os
 # os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 import logging
+import copy
 
 import cv2
 import numpy as np
@@ -52,9 +53,9 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
 #     pose[:3, :3] = r
 #     return pose
 
-
+DEBUG = False
 class Renderer:
-    def __init__(self, width, height, background, config_path):
+    def __init__(self, width, height, background, config_path, headless=True):
         """
 
         :param width: scalar
@@ -62,6 +63,12 @@ class Renderer:
         :param background: image
         :param config_path:
         """
+
+        if headless:
+            import os
+
+            os.environ["PYOPENGL_PLATFORM"] = "egl"
+
         self._width = width
         self._height = height
 
@@ -134,16 +141,23 @@ class Renderer:
         self.current_object_nodes = {}
 
         self.current_light_nodes = []
+        self.current_light_nodes_depth = []
         self.cam_light_ids = []
 
         self._init_gel()
         self._init_camera()
-        self._init_light()
+        self.default_light = self.conf.sensor.lights
+        self._init_light(self.default_light)
 
-        self.r = pyrender.OffscreenRenderer(self.width, self.height)
+        if DEBUG:
+            self.r = pyrender.Renderer(self.width, self.height)
+            print("\n-----------Debug mode, on screen rendering of poses-----------\n")
+        else:
+            self.r = pyrender.OffscreenRenderer(self.width, self.height)
+            self.get_background_sim()
 
+    def get_background_sim(self):
         colors, depths = self.render(object_poses=None, noise=False, calibration=False)
-
         self.depth0 = depths
         self._background_sim = colors
 
@@ -297,13 +311,14 @@ class Renderer:
             # Add corresponding light for rendering the camera
             self.cam_light_ids.append(list(cami.lightIDList))
 
-    def _init_light(self):
+    def _init_light(self, light=None):
         """
         Set up light
         """
 
         # Load light from config file
-        light = self.conf.sensor.lights
+        if light is None:
+            light = self.conf.sensor.lights
 
         origin = np.array(light.origin)
 
@@ -367,6 +382,7 @@ class Renderer:
             # Add extra light node into scene_depth
             light_node_depth = pyrender.Node(light=light, matrix=light_pose_0)
             self.scene_depth.add_node(light_node_depth)
+            self.current_light_nodes_depth.append(light_node_depth)
 
     def add_object(
         self, objTrimesh, obj_name, position=[0, 0, 0], orientation=[0, 0, 0]
@@ -387,8 +403,14 @@ class Renderer:
         """
         Update sensor pose (including camera, lighting, and gel surface)
         """
-
         pose = euler2matrix(angles=orientation, translation=position)
+        self.update_camera_pose_from_matrix(pose)
+
+    def update_camera_pose_from_matrix(self, tf_matrix):
+        """
+        Update sensor pose (including camera, lighting, and gel surface)
+        """
+        pose = tf_matrix.copy()
 
         # Update camera
         for i in range(self.nb_cam):
@@ -404,6 +426,9 @@ class Renderer:
             light_pose = pose.dot(self.light_poses0[i])
             light_node = self.light_nodes[i]
             light_node.matrix = light_pose
+
+        if DEBUG:
+            pyrender.Viewer(self.scene, use_raymond_lighting=True)
 
     def update_object_pose(self, obj_name, position, orientation):
         """
@@ -429,6 +454,36 @@ class Renderer:
             self.scene.add_node(light_node)
             self.current_light_nodes.append(light_node)
 
+    def randomize_light(self):
+        """
+        Randomize light parameters for training augmentation
+        """
+        # remove existing
+        self.light_nodes = []
+        self.light_poses0 = []
+        for node in self.current_light_nodes:
+            self.scene.remove_node(node)
+        for node in self.current_light_nodes_depth:
+            self.scene_depth.remove_node(node)
+        self.current_light_nodes = []
+        self.current_light_nodes_depth = []
+        light = copy.deepcopy(self.default_light)
+
+        # randomize self.conf.sensor.lights properties
+        light.origin = (
+            np.array(light.origin) + np.random.normal(loc=0.0, scale=1e-3, size=3)
+        ).tolist()  # 1mm variation in light origin
+        light.xrtheta.rs = (
+            np.array(light.xrtheta.rs) + np.random.normal(loc=0.0, scale=1e-3, size=3)
+        ).tolist()  # 1mm variation in radial light position
+        light.xrtheta.thetas = (
+            np.array(light.xrtheta.thetas) + np.random.normal(loc=0.0, scale=5, size=3)
+        ).tolist()  # 5 deg variation in theta position
+        light.intensities = (
+            np.array(light.intensities) + np.random.normal(loc=0.0, scale=0.5, size=3)
+        ).tolist()  # 1 unit variation in lighting
+        self._init_light(light)
+        # self.get_background_sim()
     def _add_noise(self, color):
         """
         Add Gaussian noise to the RGB image

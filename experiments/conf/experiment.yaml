@@ -12,7 +12,7 @@ with_bg: True # add background refrence frame
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: sphere5 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
+  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
   leds: rrrgggbbb
 
 # used only for collect_data
@@ -22,6 +22,6 @@ summary:
   gel: clear
   angle_split: 18
   cyl_split: 20
-  top_split: 3
-  save: True
+  top_split: 8
+  save: False
   save_prefix: id3

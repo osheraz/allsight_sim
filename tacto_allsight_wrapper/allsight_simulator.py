@@ -55,8 +55,8 @@ class Simulator:
 
         # bg image
         leds = summary['leds']
-        bg = cv2.imread(os.path.join(PATH,f"experiments/conf/ref/ref_frame_{leds}.jpg"))
-        conf_path = os.path.join(PATH,f"experiments/conf/sensor/config_allsight_{leds}.yml")
+        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}.jpg"))
+        conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
         self.allsight = allsight_wrapper.Sensor(
@@ -64,9 +64,9 @@ class Simulator:
             background=bg if with_bg else None
         )
 
-        # TODO should be constant
-        self.start_h = 0.012
-        self.finger_props = [0, 0, self.start_h, 0.016, 0.012]
+        self.base_h = cfg.sensor_dims.base_h
+        self.cyl_h = cfg.sensor_dims.cyl_h
+        self.cyl_r = cfg.sensor_dims.cyl_r
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -141,8 +141,8 @@ class Simulator:
         self.angle_split = conf['angle_split']
 
         # create constraints
-        (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
-        init_xyz = [self._obj_x, self._obj_y, self._obj_z]
+        # (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
+        # init_xyz = [self._obj_x, self._obj_y, self._obj_z]
 
         # self.cid = pyb.createConstraint(
         #     self.obj.id,  # parent body unique id
@@ -157,7 +157,11 @@ class Simulator:
         # )
 
         # create data logger object
-        self.logger = DataSimLogger(conf["save_prefix"],conf['leds'], conf['indenter'], save=conf['save'], save_depth=False)
+        self.logger = DataSimLogger(conf["save_prefix"],
+                                    conf['leds'],
+                                    conf['indenter'],
+                                    save=conf['save'],
+                                    save_depth=False)
 
         # take ref frame
         ref_frame, _ = self.allsight.render()
@@ -227,7 +231,7 @@ class Simulator:
 
                         pose[0] -= np.sign(pose[0]) * 0.002  # radi
                         pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                        pose[2] -= self.start_h + 0.006
+                        pose[2] -= self.base_h + 0.006  # base_h + first press pose TODO fix
 
                         orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
                         force = self.allsight.get_force('cam0')['2_-1']
@@ -235,7 +239,7 @@ class Simulator:
                         color_img = color[0]
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
-                        self.logger.append(conf["save_prefix"],i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                        self.logger.append(conf["save_prefix"], i, np.interp(q, [0, 2 * np.pi], [0, 1]),
                                            color_img, depth_img, pose, orient, force, frame_count)
 
                         frame_count += 1
@@ -271,20 +275,22 @@ class Simulator:
         '''
 
         G = 2
-        H_cyl = np.linspace(0, self.finger_props[3], self.cyl_split)
 
+        H_cyl = np.linspace(0, self.cyl_h, self.cyl_split)
+
+        x0, y0 = 0, 0
         if i < len(H_cyl):
 
             H = np.asarray([
-                self.finger_props[0] + self.finger_props[4] * np.cos(q),
-                self.finger_props[1] + self.finger_props[4] * np.sin(q),
-                self.finger_props[2] + H_cyl[i],
+                x0 + self.cyl_r * np.cos(q),
+                y0 + self.cyl_r * np.sin(q),
+                self.base_h + H_cyl[i],
             ])
 
             H2 = np.asarray([
-                self.finger_props[0] + self.finger_props[4] * G * np.cos(q),
-                self.finger_props[1] + self.finger_props[4] * G * np.sin(q),
-                self.finger_props[2] + H_cyl[i],
+                x0 + self.cyl_r * G * np.cos(q),
+                y0 + self.cyl_r * G * np.sin(q),
+                self.base_h + H_cyl[i],
             ])
 
             Rz = rotation_matrix(q, zaxis)
@@ -302,18 +308,16 @@ class Simulator:
 
             phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
-            fix = 0.15e-3 if phi < np.pi / 2.2 else 0.5e-3
-
             B = np.asarray([
-                self.finger_props[4] * np.sin(phi) * np.cos(q) + fix,
-                self.finger_props[4] * np.sin(phi) * np.sin(q) + fix,
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * np.cos(phi) + fix,
+                self.cyl_r * np.sin(phi) * np.cos(q),
+                self.cyl_r * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + self.cyl_r * np.cos(phi),
             ])
 
             B2 = np.asarray([
-                self.finger_props[4] * G * np.sin(phi) * np.cos(q) + fix,
-                self.finger_props[4] * G * np.sin(phi) * np.sin(q) + fix,
-                self.finger_props[2] + self.finger_props[3] + self.finger_props[4] * G * np.cos(phi) + fix,
+                self.cyl_r * G * np.sin(phi) * np.cos(q),
+                self.cyl_r * G * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + self.cyl_r * G * np.cos(phi),
             ])
 
             Ry = rotation_matrix(phi, yaxis)

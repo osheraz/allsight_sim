@@ -99,12 +99,13 @@ class Renderer(Renderer):
         else:
             return super()._calibrate(color, camera_index)
 
-    def _init_light(self):
+    def _init_light(self, light=None):
         ''' custom init_light method. used for override parameters such as spotlight inner/outer cones from the config.
         '''
 
         # Load light from config file
-        light = self.conf.sensor.lights
+        if light is None:
+            light = self.conf.sensor.lights
 
         origin = np.array(light.origin)
 

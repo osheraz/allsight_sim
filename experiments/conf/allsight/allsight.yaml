@@ -17,10 +17,15 @@ allsight:
   # base_orientation: [0.0, 0, 0.0, 1] # quaternion from p.getQuaternionFromEuler([0, 0 , 0])
   use_fixed_base: True
 
+sensor_dims:
+  base_h: 0.012
+  cyl_r: 0.013
+  cyl_h: 0.013
+
 object:
   urdf_path: "../assets/objects/sphere3.urdf"
   base_position: [0, 0, 0.06]
-  global_scaling: 0.15
+  global_scaling: 1
   use_fixed_base: False
 
 object_control_panel:
