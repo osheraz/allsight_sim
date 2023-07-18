@@ -44,6 +44,13 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
     return pose
 
 
+def matrix2trans(matrix):
+    r = R.from_matrix(matrix[:3, :3])
+    quaternion = r.as_quat()
+    translation = matrix[:3, 3]
+    return quaternion, translation
+
+
 # def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0]):
 #     q = p.getQuaternionFromEuler(angles)
 #     r = np.array(p.getMatrixFromQuaternion(q)).reshape(3, 3)
@@ -193,6 +200,8 @@ class Renderer:
             matrix = np.eye(4)
             matrix[[0, 1, 2], [0, 1, 2]] = 1.02
             gel_trimesh = gel_trimesh.apply_transform(matrix)
+            self.sensor_vertices = gel_trimesh.vertices
+            self.sensor_normals = gel_trimesh.vertex_normals
 
         elif not g.curvature:
             # Flat gel surface
@@ -395,7 +404,6 @@ class Renderer:
         pose = euler2matrix(angles=orientation, translation=position)
         obj_node = pyrender.Node(mesh=mesh, matrix=pose)
         self.scene.add_node(obj_node)
-
         self.object_nodes[obj_name] = obj_node
         self.current_object_nodes[obj_name] = obj_node
 
@@ -438,6 +446,14 @@ class Renderer:
         node = self.object_nodes[obj_name]
         pose = euler2matrix(angles=orientation, translation=position)
         self.scene.set_pose(node, pose=pose)
+
+    def update_object_pose_from_matrix(self, obj_name, matrix):
+        """
+        orientation: euler angles
+        """
+
+        node = self.object_nodes[obj_name]
+        self.scene.set_pose(node, pose=matrix)
 
     def update_light(self, lightIDList):
         """

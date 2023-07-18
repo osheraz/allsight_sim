@@ -332,3 +332,52 @@ class Simulator:
             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
+
+    def update_pose_given_point(self, point, press_depth, shear_mag, delta=0):
+        """
+        Convert meter to pixels
+        """
+        sensor_vertices = self.allsight.renderer.sensor_vertices
+        sensor_normals = self.allsight.renderer.sensor_normals
+
+        dist = np.linalg.norm(point - sensor_vertices, axis=1)
+        idx = np.argmin(dist)
+
+        # idx: the idx vertice, get a new pose
+        new_position = sensor_vertices[idx].copy()
+        new_orientation = sensor_normals[idx].copy()
+
+        delta = np.random.uniform(low=0.0, high=2 * np.pi, size=(1,))[0]
+
+        from .pose import pose_from_vertex_normal
+
+        new_pose = pose_from_vertex_normal(
+            new_position, new_orientation, shear_mag, delta
+        ).squeeze()
+        self.update_pose_given_pose(press_depth, new_pose)
+
+    def update_pose_given_pose(self, press_depth, obj_pos):
+        """
+        Given tf gel_pose and press_depth, update tacto camera
+        """
+        self.press_depth = press_depth
+        press_pos = self.add_press(obj_pos)
+
+        def matrix2quaternion(matrix):
+            r = R.from_matrix(matrix[:3, :3])
+            quaternion = r.as_quat()
+            translation = matrix[:3, 3]
+            return quaternion, translation
+
+        ori, pos = matrix2quaternion(press_pos)
+        self.obj.set_base_pose(position=pos, orientation=ori)
+
+        # self.allsight.renderer.update_object_pose_from_matrix('2_-1', press_pos)
+
+    def add_press(self, pose):
+        """
+        Add sensor penetration
+        """
+        pen_mat = np.eye(4)
+        pen_mat[2, 3] = -self.press_depth
+        return np.matmul(pose, pen_mat)

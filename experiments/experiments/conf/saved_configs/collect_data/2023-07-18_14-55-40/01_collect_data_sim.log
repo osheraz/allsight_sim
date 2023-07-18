@@ -1,0 +1,3 @@
+[2023-07-18 14:55:40,219][tacto.renderer][INFO] - Loading configuration from: /home/roblab20/allsight_sim/experiments/../tacto_allsight_wrapper/../experiments/conf/sensor/config_allsight_rrrgggbbb.yml
+[2023-07-18 14:55:40,569][tacto_allsight_wrapper.allsight_simulator][INFO] - Initializing world
+[2023-07-18 14:55:40,651][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
