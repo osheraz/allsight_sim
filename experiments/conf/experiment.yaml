@@ -20,7 +20,7 @@ summary:
   start_from: 15
   up_to: 30
   gel: clear
-  angle_split: 18
+  angle_split: 20
   cyl_split: 20
   top_split: 8
   save: False

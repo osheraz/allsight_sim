@@ -62,7 +62,7 @@ def matrix2trans(matrix):
 
 DEBUG = False
 class Renderer:
-    def __init__(self, width, height, background, config_path, headless=True):
+    def __init__(self, width, height, background, config_path, headless=False):
         """
 
         :param width: scalar
