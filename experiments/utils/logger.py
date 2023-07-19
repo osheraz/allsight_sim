@@ -60,7 +60,7 @@ class DataSimLogger():
 
         self.data_dict[img_id] = {'frame': img_path,
                                   'depth': depth_path,
-                                  'pose': (trans, rot),
+                                  'pose_transformed': (trans, rot),
                                   'theta': q,
                                   'ft': ft,
                                   'time': count,

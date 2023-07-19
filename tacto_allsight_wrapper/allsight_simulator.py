@@ -26,8 +26,9 @@ from tacto_allsight_wrapper import allsight_wrapper
 PATH = os.path.join(os.path.dirname(__file__), "../")
 sys.path.insert(0, PATH)
 from experiments.utils.logger import DataSimLogger
-from experiments.utils.geometry import rotation_matrix, concatenate_matrices
+from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
+from transformations import translation_matrix, translation_from_matrix, quaternion_matrix, quaternion_from_matrix
 
 log = logging.getLogger(__name__)
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
@@ -140,7 +141,11 @@ class Simulator:
         self.top_split = conf['top_split']
         self.angle_split = conf['angle_split']
 
-        # create constraints
+        # Create constraints
+        '''
+        due to limitation of pybullet orienation handling,
+        instead of changing the constraint, we recreate it every timestamp
+        '''
         # (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
         # init_xyz = [self._obj_x, self._obj_y, self._obj_z]
 
@@ -186,8 +191,6 @@ class Simulator:
                 removed = False
                 if i == self.cyl_split: continue
 
-                # f_push = 80 if i < self.cyl_split else 70
-
                 # Calculate the new orientation by adding the desired rotation
                 new_euler = [current_euler[0], current_euler[1], current_euler[2] + q]
                 new_quat = pyb.getQuaternionFromEuler(new_euler)
@@ -210,6 +213,7 @@ class Simulator:
                 time.sleep(0.1)
 
                 pyb.removeConstraint(self.cid)
+
                 # pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
                 #                      jointChildFrameOrientation=push_point_end[1],
                 #                      maxForce=f_push)
@@ -231,16 +235,23 @@ class Simulator:
 
                         pose[0] -= np.sign(pose[0]) * 0.002  # radi
                         pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                        pose[2] -= self.base_h + 0.006  # base_h + first press pose TODO fix
+                        pose[2] -= self.base_h + 0.006       # base_h
 
-                        orient = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
+                        rot = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
+
+                        trans_mat, rot_mat = translation_matrix(pose), quaternion_matrix(convert_quat_xyzw_to_wxyz(rot))
+                        T_finger_origin_press = np.dot(trans_mat, rot_mat)
+                        T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(q, zaxis), T_finger_origin_press)
+                        pose = translation_from_matrix(T_finger_origin_press_rotate_q).tolist()
+                        rot = convert_quat_wxyz_to_xyzw(quaternion_from_matrix(T_finger_origin_press_rotate_q).tolist())
+
                         force = self.allsight.get_force('cam0')['2_-1']
 
                         color_img = color[0]
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
                         self.logger.append(conf["save_prefix"], i, np.interp(q, [0, 2 * np.pi], [0, 1]),
-                                           color_img, depth_img, pose, orient, force, frame_count)
+                                           color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
                         pyb.removeConstraint(self.cid)
@@ -249,7 +260,6 @@ class Simulator:
 
                 if not removed:
                     pyb.removeConstraint(self.cid)
-                    removed = True
 
             if conf['save']: self.logger.save_batch_images()
 
@@ -349,7 +359,7 @@ class Simulator:
 
         delta = np.random.uniform(low=0.0, high=2 * np.pi, size=(1,))[0]
 
-        from .pose import pose_from_vertex_normal
+        from contrib.pose import pose_from_vertex_normal
 
         new_pose = pose_from_vertex_normal(
             new_position, new_orientation, shear_mag, delta

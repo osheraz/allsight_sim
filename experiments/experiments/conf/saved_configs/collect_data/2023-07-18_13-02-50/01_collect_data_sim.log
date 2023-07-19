@@ -1,9 +1,0 @@
-[2023-07-18 13:02:50,686][tacto.renderer][INFO] - Loading configuration from: /home/roblab20/allsight_sim/experiments/../tacto_allsight_wrapper/../experiments/conf/sensor/config_allsight_rrrgggbbb.yml
-[2023-07-18 13:02:50,972][tacto_allsight_wrapper.allsight_simulator][INFO] - Initializing world
-[2023-07-18 13:02:51,024][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
-[2023-07-18 13:02:51,882][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_x, low: -0.3, high: 0.3, init_value: 0.0
-[2023-07-18 13:02:51,889][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_y, low: -0.3, high: 0.3, init_value: 0.0
-[2023-07-18 13:02:51,906][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_z, low: 0, high: 0.3, init_value: 0.056
-[2023-07-18 13:02:51,923][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_euler_x, low: -3.141592653589793, high: 3.141592653589793, init_value: 0.0
-[2023-07-18 13:02:51,939][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_euler_y, low: -3.141592653589793, high: 3.141592653589793, init_value: -0.0
-[2023-07-18 13:02:51,955][pybulletX.gui.control_panel][INFO] - name: base_140323120674352_euler_z, low: -3.141592653589793, high: 3.141592653589793, init_value: 0.0

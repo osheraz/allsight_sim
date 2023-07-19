@@ -56,6 +56,13 @@ def rotation_matrix(angle, direction, point=None):
         M[:3, 3] = point - np.dot(R, point)
     return M
 
+def convert_quat_xyzw_to_wxyz(q):
+    q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
+    return q
+
+def convert_quat_wxyz_to_xyzw(q):
+    q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
+    return q
 
 def T_inv(T_in):
     R_in = T_in[:3,:3]
