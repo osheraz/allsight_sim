@@ -6,7 +6,6 @@ FIX = 0
 
 
 def concatenate_matrices(*matrices):
-
     M = np.identity(4)
     for i in matrices:
         M = np.dot(M, i)
@@ -14,7 +13,6 @@ def concatenate_matrices(*matrices):
 
 
 def unit_vector(data, axis=None, out=None):
-
     if out is None:
         data = np.array(data, dtype=np.float64, copy=True)
         if data.ndim == 1:
@@ -24,7 +22,7 @@ def unit_vector(data, axis=None, out=None):
         if out is not data:
             out[:] = np.array(data, copy=False)
         data = out
-    length = np.atleast_1d(np.sum(data*data, axis))
+    length = np.atleast_1d(np.sum(data * data, axis))
     np.sqrt(length, length)
     if axis is not None:
         length = np.expand_dims(length, axis)
@@ -34,20 +32,19 @@ def unit_vector(data, axis=None, out=None):
 
 
 def rotation_matrix(angle, direction, point=None):
-
     sina = math.sin(angle)
     cosa = math.cos(angle)
     direction = unit_vector(direction[:3])
     # rotation matrix around unit vector
-    R = np.array(((cosa, 0.0,  0.0),
-                     (0.0,  cosa, 0.0),
-                     (0.0,  0.0,  cosa)), dtype=np.float64)
+    R = np.array(((cosa, 0.0, 0.0),
+                  (0.0, cosa, 0.0),
+                  (0.0, 0.0, cosa)), dtype=np.float64)
     R += np.outer(direction, direction) * (1.0 - cosa)
     direction *= sina
-    R += np.array((( 0.0,         -direction[2],  direction[1]),
-                      ( direction[2], 0.0,          -direction[0]),
-                      (-direction[1], direction[0],  0.0)),
-                     dtype=np.float64)
+    R += np.array(((0.0, -direction[2], direction[1]),
+                   (direction[2], 0.0, -direction[0]),
+                   (-direction[1], direction[0], 0.0)),
+                  dtype=np.float64)
     M = np.identity(4)
     M[:3, :3] = R
     if point is not None:
@@ -56,32 +53,30 @@ def rotation_matrix(angle, direction, point=None):
         M[:3, 3] = point - np.dot(R, point)
     return M
 
+
 def convert_quat_xyzw_to_wxyz(q):
+    q = list(q)
     q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
     return q
 
+
 def convert_quat_wxyz_to_xyzw(q):
+    q = list(q)
     q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
     return q
+
 
 def T_inv(T_in):
-    R_in = T_in[:3,:3]
-    t_in = T_in[:3,[-1]]
+    R_in = T_in[:3, :3]
+    t_in = T_in[:3, [-1]]
     R_out = R_in.T
-    t_out = -np.matmul(R_out,t_in)
-    return np.vstack((np.hstack((R_out,t_out)),np.array([0, 0, 0, 1])))
-
-def convert_quat_xyzw_to_wxyz(q):
-    q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
-    return q
-
-def convert_quat_wxyz_to_xyzw(q):
-    q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
-    return q
+    t_out = -np.matmul(R_out, t_in)
+    return np.vstack((np.hstack((R_out, t_out)), np.array([0, 0, 0, 1])))
 
 
 def crop_image(img, pad):
     return img[pad:-pad, pad:-pad]
+
 
 def _diff(target, base):
     diff = (target * 1.0 - base) / 255.0 + 0.5
@@ -89,9 +84,10 @@ def _diff(target, base):
     diff_abs = np.mean(np.abs(diff - 0.5), axis=-1)
     return diff_abs
 
+
 class ContactArea:
     def __init__(
-        self, base=None, draw_poly=False, contour_threshold=100,real_time=True,*args, **kwargs
+            self, base=None, draw_poly=False, contour_threshold=100, real_time=True, *args, **kwargs
     ):
         self.base = base
         self.draw_poly = draw_poly
@@ -105,9 +101,9 @@ class ContactArea:
         diff = self._diff(target, base)
         diff = self._smooth(diff)
         contours = self._contours(diff)
-        if self._compute_contact_area(contours, self.contour_threshold) == None and self.real_time==False:
+        if self._compute_contact_area(contours, self.contour_threshold) == None and self.real_time == False:
             raise Exception("No contact area detected.")
-        if self._compute_contact_area(contours, self.contour_threshold) == None and self.real_time==True:
+        if self._compute_contact_area(contours, self.contour_threshold) == None and self.real_time == True:
             return None
         else:
             (
@@ -143,14 +139,14 @@ class ContactArea:
         return contours
 
     def _draw_major_minor(
-        self,
-        target,
-        poly,
-        major_axis,
-        major_axis_end,
-        minor_axis,
-        minor_axis_end,
-        lineThickness=2,
+            self,
+            target,
+            poly,
+            major_axis,
+            major_axis_end,
+            minor_axis,
+            minor_axis_end,
+            lineThickness=2,
     ):
         cv2.polylines(target, [poly], True, (255, 255, 255), lineThickness)
         cv2.line(
@@ -266,6 +262,7 @@ def get_coords(x, y, angle, imwidth, imheight):
 
     return (int(endx1), int(endy1)), (int(endx2), int(endy2))
 
+
 def interpolate_img(img, rows, cols):
     """
     img: C x H x W
@@ -276,6 +273,7 @@ def interpolate_img(img, rows, cols):
     img = img.permute(0, 2, 1)
 
     return img
+
 
 if __name__ == "__main__":
 
@@ -312,7 +310,6 @@ if __name__ == "__main__":
         # the frame, frame = the current frame being
         # projected in the video
         ret, frame = cap.read()
-
 
         frame = frame * c_mask
         # Opens a new window and displays the input

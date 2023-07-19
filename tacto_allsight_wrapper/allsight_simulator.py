@@ -235,7 +235,7 @@ class Simulator:
 
                         pose[0] -= np.sign(pose[0]) * 0.002  # radi
                         pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                        pose[2] -= self.base_h + 0.006       # base_h
+                        pose[2] -= self.base_h               # base_h
 
                         rot = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
 
