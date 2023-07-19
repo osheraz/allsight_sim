@@ -57,10 +57,12 @@ def rotation_matrix(angle, direction, point=None):
     return M
 
 def convert_quat_xyzw_to_wxyz(q):
+    q = list(q)
     q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
     return q
 
 def convert_quat_wxyz_to_xyzw(q):
+    q = list(q)
     q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
     return q
 
@@ -70,15 +72,6 @@ def T_inv(T_in):
     R_out = R_in.T
     t_out = -np.matmul(R_out,t_in)
     return np.vstack((np.hstack((R_out,t_out)),np.array([0, 0, 0, 1])))
-
-def convert_quat_xyzw_to_wxyz(q):
-    q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
-    return q
-
-def convert_quat_wxyz_to_xyzw(q):
-    q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
-    return q
-
 
 def crop_image(img, pad):
     return img[pad:-pad, pad:-pad]
