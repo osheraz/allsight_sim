@@ -235,15 +235,16 @@ class Simulator:
                         # time.sleep(0.05)
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
+                        # TODO: should be fixed by calibration
                         pose[0] -= np.sign(pose[0]) * 0.002  # radi
                         pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                        pose[2] -= self.base_h               # base_h
+                        pose[2] -= self.base_h + 0.004             # base_h
 
                         rot = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
 
                         trans_mat, rot_mat = translation_matrix(pose), quaternion_matrix(convert_quat_xyzw_to_wxyz(rot))
                         T_finger_origin_press = np.dot(trans_mat, rot_mat)
-                        T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(q, zaxis), T_finger_origin_press)
+                        T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(-q, zaxis), T_finger_origin_press)
                         pose = translation_from_matrix(T_finger_origin_press_rotate_q).tolist()
                         rot = convert_quat_wxyz_to_xyzw(quaternion_from_matrix(T_finger_origin_press_rotate_q).tolist())
 
