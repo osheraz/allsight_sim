@@ -71,10 +71,10 @@ class Renderer:
         :param config_path:
         """
 
-        if headless:
-            import os
+        # if headless:
+        #     import os
 
-            os.environ["PYOPENGL_PLATFORM"] = "egl"
+        #     os.environ["PYOPENGL_PLATFORM"] = "egl"
 
         self._width = width
         self._height = height

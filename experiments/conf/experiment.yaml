@@ -17,11 +17,11 @@ summary:
 
 # used only for collect_data
   method: press
-  start_from: 15
+  start_from: 10
   up_to: 30
   gel: clear
-  angle_split: 20
-  cyl_split: 20
-  top_split: 8
+  angle_split: 49
+  cyl_split: 30
+  top_split: 10
   save: True
-  save_prefix: id3
+  save_prefix: id3_noise

@@ -183,10 +183,12 @@ class Simulator:
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
-
+        
         for q in Q:
-
-            for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
+            
+            top_split = (self.top_split-1) if q!=0 else self.top_split    
+            
+            for i in range(conf['start_from'], self.cyl_split + top_split, 1):
 
                 removed = False
                 if i == self.cyl_split: continue
