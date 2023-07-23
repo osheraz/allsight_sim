@@ -5,7 +5,7 @@ hydra:
 defaults:
   - _self_
   - allsight: allsight
-  - override hydra/job_logging: default # disabled | default
+  - override hydra/job_logging: disabled # disabled | default
 
 with_bg: True # add background reference frame
 
@@ -23,5 +23,5 @@ summary:
   angle_split: 20
   cyl_split: 20
   top_split: 8
-  save: False
+  save: True
   save_prefix: id3

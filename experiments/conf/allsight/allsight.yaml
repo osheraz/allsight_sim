@@ -18,7 +18,7 @@ allsight:
   use_fixed_base: True
 
 sensor_dims:
-  base_h: 0.012
+  base_h: 0.014
   cyl_r: 0.013
   cyl_h: 0.013
 
