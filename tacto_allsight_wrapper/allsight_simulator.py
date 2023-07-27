@@ -143,7 +143,7 @@ class Simulator:
 
         # Create constraints
         '''
-        due to limitation of pybullet orienation handling,
+        due to limitation of pybullet orientation handling,
         instead of changing the constraint, we recreate it every timestamp
         '''
         # (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
@@ -198,15 +198,17 @@ class Simulator:
                 self.body.set_base_pose(position=current_pos, orientation=new_quat)
                 pyb.stepSimulation()
 
+                push_point_start, push_point_end = self.get_push_point_by_index(0, i)
+
                 # pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
                 #                      jointChildFrameOrientation=push_point_start[1],
                 #                      maxForce=f_push)
 
-                push_point_start, push_point_end = self.get_push_point_by_index(0, i)
-
                 self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
                                                 childFramePosition=push_point_start[0],
                                                 childFrameOrientation=push_point_start[1])
+
+                # self.obj.set_base_pose(position=push_point_start[0], orientation=push_point_start[1])
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
@@ -221,6 +223,8 @@ class Simulator:
                 self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
                                                 childFramePosition=push_point_end[0],
                                                 childFrameOrientation=push_point_end[1])
+
+                # self.obj.set_base_pose(position=push_point_end[0], orientation=push_point_end[1])
 
                 for _ in range(5):
 
@@ -260,6 +264,7 @@ class Simulator:
 
                 if not removed:
                     pyb.removeConstraint(self.cid)
+                    removed = True
 
             if conf['save']: self.logger.save_batch_images()
 

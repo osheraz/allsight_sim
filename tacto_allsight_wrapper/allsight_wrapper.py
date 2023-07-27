@@ -19,7 +19,7 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
     return pose
 
 
-def circle_mask(size=(480, 480), border=0):
+def circle_mask(size=(224, 224), border=0):
     """
         used to filter center circular area of a given image,
         corresponding to the AllSight surface area

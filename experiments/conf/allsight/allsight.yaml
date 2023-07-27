@@ -1,5 +1,5 @@
-# defaults:
-#   - override hydra/job_logging: disabled
+ defaults:
+   - override hydra/job_logging: disabled
 
 # hydra:
 #   run:
