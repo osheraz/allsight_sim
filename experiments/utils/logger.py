@@ -19,7 +19,7 @@ class DataSimLogger():
         self.save = save
         self.save_depth = save_depth
         # Init of the dataset dir paths with the current day and time
-        self.date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S")
+        self.date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S")
         if prefix is not None:
             self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/{}_img_{}".format(leds, indenter,prefix, self.date)
         else:
