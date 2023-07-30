@@ -17,7 +17,7 @@ pc_name = os.getlogin()
 leds = 'rrrgggbbb'
 gel = 'clear'
 
-indenter = ['sphere4', 'sphere5', 'sphere3']
+indenter = ['sphere3']
 
 sim_prefix = '/home/roblab20/allsight_sim/experiments/'
 sim_paths = [f"{sim_prefix}/allsight_sim_dataset/{gel}/{leds}/data/{ind}" for ind in indenter]
