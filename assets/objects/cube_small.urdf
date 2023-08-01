@@ -15,7 +15,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-				<mesh filename="cube.obj" scale=".025 .025 .025"/>
+				<mesh filename="cube.obj" scale="0.004 0.004 0.004"/>
       </geometry>
        <material name="white">
         <color rgba="1 1 1 1"/>
@@ -24,7 +24,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0 "/>
       <geometry>
-	 	<box size=".025 .025 .025"/>
+	 	<box size="0.004 0.004 0.004"/>
       </geometry>
     </collision>
   </link>

@@ -18,8 +18,8 @@ The handle for OSMesa is osmesa.
 Default is pyglet, which requires active window
 """
 
-# import os
-# os.environ["PYOPENGL_PLATFORM"] = "egl"
+import os
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 import logging
 import copy

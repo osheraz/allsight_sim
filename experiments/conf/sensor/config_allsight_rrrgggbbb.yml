@@ -46,7 +46,7 @@ sensor:
       rs: [0.008, 0.008, 0.008] # r in polar coordinates
       # rs: [0.0, 0.0, 0.0] # r in polar coordinates
 
-      thetas: [0,120,240] #[-40,80,200] #, -60, -100, -140] # theta in polar coordinates, in degrees
+      thetas: [-40,80,200] #[-40,80,200] #, -60, -100, -140] # theta in polar coordinates, in degrees
     colors: [[0, 1, 0], [1, 0, 0],[0, 0, 1 ]] # R G B color
     intensities: [0.4,0.2,0.2]
 
