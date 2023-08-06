@@ -1,13 +1,13 @@
- defaults:
-   - override hydra/job_logging: disabled
+hydra:
+  run:
+    dir: ./
 
-# hydra:
-#   run:
-#     dir: .././
+#defaults:
+# - override hydra/job_logging: disabled
 
 tacto:
-  width: 480
-  height: 480
+  width: 224
+  height: 224
   visualize_gui: True
 
 allsight:

@@ -1,0 +1,74 @@
+[2023-08-03 13:27:22,164][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:27:53,286][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:28:03,968][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:28:16,467][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:31:46,736][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:32:20,742][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:32:20,826][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:33:03,153][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:36:16,509][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:37:30,555][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 13:37:54,537][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 13:37:55,167][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:40:56,932][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:41:46,032][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:43:19,420][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:43:34,726][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:48:16,894][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:49:19,052][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:50:53,089][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:52:17,474][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:55:39,942][OpenGL.acceleratesupport][INFO] - No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2023-08-03 13:55:40,300][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:56:17,984][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 13:56:36,168][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 13:56:36,422][OpenGL.acceleratesupport][INFO] - No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2023-08-03 13:56:36,740][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 13:59:27,602][OpenGL.acceleratesupport][INFO] - No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2023-08-03 13:59:27,950][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:00:50,734][OpenGL.acceleratesupport][INFO] - No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2023-08-03 14:00:51,056][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/experiments/../experiments/conf/sensor/config_allsight_rrrgggbbb.yml
+[2023-08-03 14:01:27,145][OpenGL.acceleratesupport][INFO] - OpenGL_accelerate module loaded
+[2023-08-03 14:01:27,150][OpenGL.arrays.arraydatatype][INFO] - Using accelerated ArrayDatatype
+[2023-08-03 14:01:27,484][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/experiments/../experiments/conf/sensor/config_allsight_rrrgggbbb.yml
+[2023-08-03 14:18:43,467][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:21:28,432][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:25:02,973][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:25:03,127][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:25:36,209][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:25:36,352][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:33:12,258][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:33:12,400][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:38:51,728][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:38:51,875][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 14:38:52,074][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:00:12,548][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:00:12,735][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:00:12,911][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:01:09,211][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:01:09,356][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:01:09,558][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:03:02,641][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:03:02,783][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:03:02,988][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:08:33,946][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:08:34,104][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:08:34,310][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:16:34,599][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:16:34,784][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:16:34,994][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:17:42,468][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:17:42,600][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:17:42,794][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:18:31,570][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:18:31,712][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:18:31,922][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:20:03,676][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:20:03,824][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:20:04,034][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:20:45,627][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:20:45,798][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:20:46,031][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)
+[2023-08-03 15:22:31,587][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:22:31,727][tacto.renderer][INFO] - Loading configuration from: /home/osher/PycharmProjects/allsight_sim/tacto/config_digit.yml
+[2023-08-03 15:22:31,926][pybulletX._wrapper][INFO] - Calling pybullet.setGravity(gravX=0, gravY=0, gravZ=-9.81, physicsClientId=0)

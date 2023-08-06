@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 class Camera:
     def __init__(self, cameraResolution=None):
-
         if cameraResolution is None:
             cameraResolution = [480, 480]
 
@@ -102,16 +101,16 @@ class Log:
         os.makedirs(dirName, exist_ok=True)
 
     def save(
-        self,
-        tactileColorL,
-        tactileColorR,
-        tactileDepthL,
-        tactileDepthR,
-        visionColor,
-        visionDepth,
-        gripForce,
-        normalForce,
-        label,
+            self,
+            tactileColorL,
+            tactileColorR,
+            tactileDepthL,
+            tactileDepthR,
+            visionColor,
+            visionDepth,
+            gripForce,
+            normalForce,
+            label,
     ):
         data = {
             "tactileColorL": tactileColorL,
@@ -148,66 +147,6 @@ class Log:
             self.id += 1
 
 
-log = Log("data/grasp")
-
-digits = tacto.Sensor(width=240, height=320, visualize_gui=True)
-
-# Initialize World
-px.init()
-logging.info("Initializing world")
-physicsClient = pb.connect(pb.DIRECT)
-pb.setAdditionalSearchPath(pybullet_data.getDataPath())  # optionally
-pb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
-
-# Initialize digits
-
-
-pb.resetDebugVisualizerCamera(
-    cameraDistance=0.6,
-    cameraYaw=15,
-    cameraPitch=-20,
-    # cameraTargetPosition=[-1.20, 0.69, -0.77],
-    cameraTargetPosition=[0.5, 0, 0.08],
-)
-pb.configureDebugVisualizer(
-    pb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
-)
-
-planeId = pb.loadURDF("plane.urdf")  # Create plane
-
-robotURDF = "../assets/robots/sawyer_wsg50.urdf"
-
-robotID = pb.loadURDF(robotURDF, useFixedBase=True)
-rob = Robot(robotID)
-
-
-cam = Camera()
-color, depth = cam.get_image()
-
-
-rob.go(rob.pos, wait=True)
-
-sensorLinks = rob.get_id_by_name(
-    ["joint_finger_tip_left", "joint_finger_tip_right"]
-)  # [21, 24]
-digits.add_camera(robotID, sensorLinks)
-
-nbJoint = pb.getNumJoints(robotID)
-
-# Add object to pybullet and tacto simulator
-urdfObj = "../assets/objects/cube_small.urdf"
-
-globalScaling = 0.6
-objStartPos = [0.50, 0, 0.05]
-objStartOrientation = pb.getQuaternionFromEuler([0, 0, np.pi / 2])
-
-objID = digits.loadURDF(
-    urdfObj, objStartPos, objStartOrientation, globalScaling=globalScaling
-)
-
-sensorID = rob.get_id_by_name(["joint_finger_tip_right", "joint_finger_tip_left"])
-
-
 def get_object_pose():
     res = pb.getBasePositionAndOrientation(objID)
 
@@ -224,6 +163,83 @@ def get_object_pose():
     return (world_positions, world_orientations)
 
 
+log = Log("data/grasp")
+
+# digits = tacto.Sensor(width=224, height=224, visualize_gui=True)
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+from tacto_allsight_wrapper import allsight_wrapper
+import sys
+import cv2
+
+# import allsight wrapper
+PATH = os.path.join(os.path.dirname(__file__), "../")
+sys.path.insert(0, PATH)
+
+bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_rrrgggbbb.jpg"))
+conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_rrrgggbbb.yml")
+
+allsights = allsight_wrapper.Sensor(
+    width=224, height=224, visualize_gui=True, **{"config_path": conf_path},
+    background=bg if True else None
+)
+
+# Initialize World
+px.init()
+logging.info("Initializing world")
+physicsClient = pb.connect(pb.DIRECT)
+pb.setAdditionalSearchPath(pybullet_data.getDataPath())  # optionally
+pb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+
+pb.resetDebugVisualizerCamera(
+    cameraDistance=0.6,
+    cameraYaw=15,
+    cameraPitch=-20,
+    # cameraTargetPosition=[-1.20, 0.69, -0.77],
+    cameraTargetPosition=[0.5, 0, 0.08],
+)
+pb.configureDebugVisualizer(
+    pb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
+)
+
+planeId = pb.loadURDF("plane.urdf")  # Create plane
+
+robotURDF = "../assets/robots/sawyer_openhand.urdf"
+
+# robotID = pb.loadURDF(robotURDF, useFixedBase=True)
+robot = px.Body(robotURDF, use_fixed_base=True)
+# Add object to pybullet and tacto simulator
+urdfObj = "../assets/objects/sphere_small.urdf"
+
+objStartPos = [0.50, 0, 0.07]
+objStartOrientation = pb.getQuaternionFromEuler([0, 0, np.pi / 2])
+
+obj = px.Body(urdf_path=urdfObj,
+              base_position=objStartPos,
+              base_orientation=objStartOrientation,
+              global_scaling=1.0,
+              use_fixed_base=False)
+
+objID = obj.id
+allsights.add_body(obj)
+
+
+robotID = robot.id
+rob = Robot(robotID, objID)
+
+allsight_joints = ["finger_3_2_to_finger_3_3", "finger_2_2_to_finger_2_3", "finger_1_2_to_finger_1_3"]
+sensorID = rob.get_id_by_name(allsight_joints)
+sensorLinks = rob.get_id_by_name(allsight_joints)
+
+allsights.add_camera(robotID, sensorLinks)
+
+cam = Camera()
+color, depth = cam.get_image()
+
+rob.go(rob.pos, wait=False)
+
+nbJoint = pb.getNumJoints(robotID)
+
 time_render = []
 time_vis = []
 
@@ -238,11 +254,15 @@ posList = [
 posID = 0
 pos = posList[posID].copy()
 
-t = 0
-gripForce = 20
+t = px.utils.SimulationThread(real_time_factor=1.0)
+t.start()
 
-color, depth = digits.render()
-digits.updateGUI(color, depth)
+# t=0
+gripForce = 20
+for i in range(5):
+    color, depth = allsights.render()
+    allsights.updateGUI(color, depth)
+    time.sleep(0.05)
 
 normalForceList0 = []
 normalForceList1 = []
@@ -250,115 +270,100 @@ normalForceList1 = []
 print("\n")
 
 while True:
-    # pick_and_place()
-    t += 1
-    if t <= 50:
-        # Reaching
-        rob.go(pos, width=0.11)
-    elif t < 200:
-        # Grasping
-        rob.go(pos, width=0.03, gripForce=gripForce)
-    elif t == 200:
-        # Record sensor states
-        tactileColor, tactileDepth = digits.render()
-        tactileColorL, tactileColorR = tactileColor[0], tactileColor[1]
-        tactileDepthL, tactileDepthR = tactileDepth[0], tactileDepth[1]
 
-        visionColor, visionDepth = cam.get_image()
 
-        digits.updateGUI(tactileColor, tactileDepth)
+    rob.gripper_open()
+    rob.go(pos, wait=True)
+    rob.grasp()
+    # Record sensor states
+    tactileColor, tactileDepth = allsights.render()
+    tactileColorL, tactileColorR = tactileColor[0], tactileColor[1]
+    tactileDepthL, tactileDepthR = tactileDepth[0], tactileDepth[1]
 
-        normalForce0, lateralForce0 = get_forces(robotID, objID, sensorID[0], -1)
-        normalForce1, lateralForce1 = get_forces(robotID, objID, sensorID[1], -1)
-        normalForce = [normalForce0, normalForce1]
-        # print("Normal Force Left", normalForce0, "Normal Force Right", normalForce1)
-        # print("normal force", normalForce, "lateral force", lateralForce)
+    visionColor, visionDepth = cam.get_image()
+    allsights.updateGUI(tactileColor, tactileDepth)
 
-        objPos0, objOri0 = get_object_pose()
-    elif t > 200 and t <= 260:
-        # Lift
-        pos[-1] += dz
-        rob.go(pos)
-    elif t > 340:
-        # Save the data
-        objPos, objOri = get_object_pose()
+    normalForce0, lateralForce0 = get_forces(robotID, objID, sensorID[0], -1)
+    normalForce1, lateralForce1 = get_forces(robotID, objID, sensorID[1], -1)
+    normalForce = [normalForce0, normalForce1]
+    # print("Normal Force Left", normalForce0, "Normal Force Right", normalForce1)
+    # print("normal force", normalForce, "lateral force", lateralForce)
 
-        if objPos[2] - objPos0[2] < 60 * dz * 0.8:
-            # Fail
-            label = 0
-        else:
-            # Success
-            label = 1
-        # print("Success" if label == 1 else "Fail", end=" ")
+    objPos0, objOri0 = get_object_pose()
 
-        log.save(
-            tactileColorL,
-            tactileColorR,
-            tactileDepthL,
-            tactileDepthR,
-            visionColor,
-            visionDepth,
-            gripForce,
-            normalForce,
-            label,
-        )
-        print("\rsample {}".format(log.id * log.batch_size + len(log.dataList)), end="")
+    pos[-1] += dz
 
-        # print("\rsample {}".format(log.id), end="")
+    rob.go(pos, wait=True)
 
-        if log.id > 2000:
-            break
+    # Save the data
+    objPos, objOri = get_object_pose()
 
-        # Reset
-        t = 0
+    if objPos[2] - objPos0[2] < 60 * dz * 0.8:
+        # Fail
+        label = 0
+    else:
+        # Success
+        label = 1
+    # print("Success" if label == 1 else "Fail", end=" ")
 
-        # rob.go(pos, width=0.11)
-        # for i in range(100):
-        #     pb.stepSimulation()
-        rob.reset_robot()
+    log.save(
+        tactileColorL,
+        tactileColorR,
+        tactileDepthL,
+        tactileDepthR,
+        visionColor,
+        visionDepth,
+        gripForce,
+        normalForce,
+        label,
+    )
+    print("\rsample {}".format(log.id * log.batch_size + len(log.dataList)), end="")
 
-        objRestartPos = [
-            0.50 + 0.1 * np.random.random(),
-            -0.15 + 0.3 * np.random.random(),
-            0.05,
-        ]
-        objRestartOrientation = pb.getQuaternionFromEuler(
-            [0, 0, 2 * np.pi * np.random.random()]
-        )
+    # Reset
+    rob.reset_robot()
 
-        pos = [
-            objRestartPos[0] + np.random.uniform(-0.02, 0.02),
-            objRestartPos[1] + np.random.uniform(-0.02, 0.02),
-            objRestartPos[2] * (1 + np.random.random() * 0.5) + 0.14,
-        ]
-        ori = [0, np.pi, 2 * np.pi * np.random.random()]
-        # pos = [0.50, 0, 0.205]
-        # pos = [np.random.random(0.3)]
+    objRestartPos = [
+        0.50 + 0.1 * np.random.random(),
+        -0.15 + 0.3 * np.random.random(),
+        0.05,
+    ]
+    objRestartOrientation = pb.getQuaternionFromEuler(
+        [0, 0, 2 * np.pi * np.random.random()]
+    )
 
-        gripForce = 5 + np.random.random() * 15
+    pos = [
+        objRestartPos[0] + np.random.uniform(-0.02, 0.02),
+        objRestartPos[1] + np.random.uniform(-0.02, 0.02),
+        objRestartPos[2] * (1 + np.random.random() * 0.5) + 0.14,
+    ]
+    ori = [0, np.pi, 2 * np.pi * np.random.random()]
+    # pos = [0.50, 0, 0.205]
+    # pos = [np.random.random(0.3)]
 
-        rob.go(pos + np.array([0, 0, 0.1]), ori=ori, width=0.11)
-        pb.resetBasePositionAndOrientation(objID, objRestartPos, objRestartOrientation)
-        for i in range(100):
-            pb.stepSimulation()
+    gripForce = 5 + np.random.random() * 15
 
-    pb.stepSimulation()
+    rob.go(pos + np.array([0, 0, 0.1]), ori=ori)
+
+    # pb.resetBasePositionAndOrientation(objID, objRestartPos, objRestartOrientation)
+    obj.set_base_pose(objRestartPos, objRestartOrientation)
+
+    for i in range(10):
+        pb.stepSimulation()
 
     st = time.time()
-    # color, depth = digits.render()
-
     time_render.append(time.time() - st)
     time_render = time_render[-100:]
     # print("render {:.4f}s".format(np.mean(time_render)), end=" ")
     st = time.time()
 
-    # digits.updateGUI(color, depth)
 
     time_vis.append(time.time() - st)
     time_vis = time_vis[-100:]
 
     # print("visualize {:.4f}s".format(np.mean(time_vis)))
 
-    digits.update()
+    color, depth = allsights.render()
+    allsights.updateGUI(color, depth)
+    time.sleep(0.05)
 
 pb.disconnect()  # Close PyBullet

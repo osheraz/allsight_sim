@@ -9,13 +9,13 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-       <mass value="1"/>
-       <inertia ixx="1" ixy="0" ixz="0" iyy="1.3" iyz="0" izz="0.5"/>
+       <mass value="0.01"/>
+       <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-				<mesh filename="cube.obj" scale=".004 .004 .002"/>
+				<mesh filename="cube.obj" scale=".04 .02 .07"/>
       </geometry>
        <material name="white">
         <color rgba="1 1 1 1"/>
@@ -24,7 +24,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0 "/>
       <geometry>
-	 	<box size=".004 .004 .002"/>
+	 	<box size=".04 .02 .07"/>
       </geometry>
     </collision>
   </link>

@@ -54,7 +54,6 @@ def main(cfg):
     panel = px.gui.PoseControlPanel(obj, **cfg.object_control_panel)
     panel.start()
 
-
     # run p.stepSimulation in another thread
     t = px.utils.SimulationThread(real_time_factor=1.0)
     t.start()

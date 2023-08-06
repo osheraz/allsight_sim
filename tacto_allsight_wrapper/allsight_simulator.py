@@ -110,9 +110,9 @@ class Simulator:
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
-        # Create control panel to control the 6DoF pose of the object
-        self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
-        self.panel.start()
+        # # Create control panel to control the 6DoF pose of the object
+        # self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
+        # self.panel.start()
 
     def start(self):
         '''Start the simulation thread
