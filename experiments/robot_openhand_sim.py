@@ -11,11 +11,11 @@ import time
 import numpy as np
 import pybullet as pb
 import pybullet_data
-from robot_openhand_env import RobotSim
+from robot_openhand_env import InsertionEnv
 import pybulletX as px
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 class Log:
     def __init__(self, dirName, id=0):
@@ -98,7 +98,7 @@ def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
 
 log = Log("data/grasp")
 
-rob = RobotSim()
+rob = InsertionEnv(robot_name='sawyer')
 
 rob.go(rob.pos, wait=True)
 
@@ -106,15 +106,7 @@ time_render = []
 time_vis = []
 
 dz = 0.005
-interval = 10
-posList = [
-    [0.50, 0, 0.19],
-    [0.50, 0, 0.213],
-    [0.50, 0.03, 0.205],
-    [0.50, 0.03, 0.213],
-]
-posID = 0
-pos = posList[posID].copy()
+pos = [0.50, 0, 0.19]
 
 t = px.utils.SimulationThread(real_time_factor=1.0)
 t.start()
@@ -127,16 +119,18 @@ normalForceList1 = []
 
 print("\n")
 t = 0
+
+# rob.go(pos=pos, ori=[0,0,0])
 while True:
     t += 1
     print(t)
-    if t <= 5:
+    if t == 5:
         # Reaching
         rob.go(pos)
-    elif t < 10:
+    elif t == 10:
         # Grasping
         rob.grasp(gripForce=gripForce)
-    elif t == 10:
+    elif t == 11:
         # Record sensor states
         tactileColor, tactileDepth = rob.allsights.render()
         tactileColorL, tactileColorR = tactileColor[0], tactileColor[1]
@@ -213,8 +207,9 @@ while True:
 
         rob.go(pos + np.array([0, 0, 0.1]), ori=ori)
         pb.resetBasePositionAndOrientation(rob.objID, objRestartPos, objRestartOrientation)
-        for i in range(100):
-            pb.stepSimulation()
+        # for i in range(100):
+        #     pb.stepSimulation()
+        pb.stepSimulation()
 
     pb.stepSimulation()
 

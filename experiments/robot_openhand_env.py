@@ -27,11 +27,13 @@ import sys
 import cv2
 
 
-class RobotSim:
+class InsertionEnv:
 
-    def __init__(self, obj_start_pos=None, obj_start_ori=None):
+    def __init__(self, robot_name='panda',
+                 obj_start_pos=None,
+                 obj_start_ori=None):
 
-        # Init tactile tips
+        # Init finger tips
         rel_path = os.path.join(os.path.dirname(__file__), "../")
         sys.path.insert(0, rel_path)
         bg = cv2.imread(os.path.join(rel_path, f"experiments/conf/ref/ref_frame_rrrgggbbb.jpg"))
@@ -42,14 +44,11 @@ class RobotSim:
             background=bg if True else None
         )
 
-        if obj_start_ori is None:
-            obj_start_ori = [0, 0, np.pi / 2]
-        if obj_start_pos is None:
-            obj_start_pos = [0.50, 0, 0.07]
-
+        # Init PyBullet
         px.init()
         logging.info("Initializing world")
-        physicsClient = pb.connect(pb.DIRECT)
+        # physicsClient = pb.connect(pb.DIRECT)
+        pb.setPhysicsEngineParameter(solverResidualThreshold=0)
         pb.setAdditionalSearchPath(pybullet_data.getDataPath())  # optionally
         pb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
 
@@ -57,7 +56,6 @@ class RobotSim:
             cameraDistance=0.6,
             cameraYaw=15,
             cameraPitch=-20,
-            # cameraTargetPosition=[-1.20, 0.69, -0.77],
             cameraTargetPosition=[0.5, 0, 0.08],
         )
 
@@ -65,11 +63,23 @@ class RobotSim:
             pb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
         )
 
-        # planeId = pb.loadURDF("plane.urdf")  # Create plane
-
-        robotURDF = "../assets/robots/sawyer_openhand.urdf"
+        # Define Robot
+        if robot_name == 'sawyer':
+            robotURDF = "../assets/robots/sawyer_openhand.urdf"
+            self.armNames = ["right_j" + str(i) for i in range(7)]
+            ee_name = 'right_hand'
+        elif robot_name == 'panda':
+            robotURDF = "../assets/robots/panda_openhand.urdf"
+            self.armNames = ["panda_joint" + str(i) for i in range(1, 8)]
+            ee_name = 'panda_grasptarget_hand'
         self.robot = px.Body(robotURDF, use_fixed_base=True)
+
+        # Define scene
         urdfObj = "../assets/objects/rect_small.urdf"
+        if obj_start_ori is None:
+            obj_start_ori = [0, 0, np.pi / 2]
+        if obj_start_pos is None:
+            obj_start_pos = [0.50, 0, 0.07]
 
         self.obj = px.Body(urdf_path=urdfObj,
                            base_position=obj_start_pos,
@@ -78,27 +88,13 @@ class RobotSim:
                            use_fixed_base=False,
                            flags=pb.URDF_USE_INERTIA_FROM_FILE)
 
-        objID = self.obj.id
-        robotID = self.robot.id
-
-        self.robotID = robotID
-        self.objID = objID
-
-        # Get link/joint ID for arm
-        self.armNames = [
-            "right_j0",
-            "right_j1",
-            "right_j2",
-            "right_j3",
-            "right_j4",
-            "right_j5",
-            "right_j6",
-        ]
+        self.objID = self.obj.id
+        self.robotID = self.robot.id
         self.armJoints = self.get_id_by_name(self.armNames)
         self.armControlID = self.get_control_id_by_name(self.armNames)
 
         # Get link/joint ID for gripper
-        self.gripperNames = [
+        gripperNames = [
             # "base_to_finger_1_1",
             "finger_1_1_to_finger_1_2",
             "finger_1_2_to_finger_1_3",
@@ -108,18 +104,23 @@ class RobotSim:
             "base_to_finger_3_2",
             "finger_3_2_to_finger_3_3"
         ]
+        gripperBases = ['base_to_finger_1_1',
+                             'base_to_finger_2_1']
 
-        self.gripperJoints = self.get_id_by_name(self.gripperNames)
-        self.gripperControlID = self.get_control_id_by_name(self.gripperNames)
+        allsight_joints = ["finger_3_2_to_finger_3_3",
+                           "finger_2_2_to_finger_2_3",
+                           "finger_1_2_to_finger_1_3"]
 
-        self.gripperBases = ['base_to_finger_1_1', 'base_to_finger_2_1']
-        self.gripperBaseJoints = self.get_id_by_name(self.gripperBases)
-        self.gripperBaseControlID = self.get_control_id_by_name(self.gripperBases)
+        self.gripperJoints = self.get_id_by_name(gripperNames)
+        self.gripperControlID = self.get_control_id_by_name(gripperNames)
+
+        self.gripperBaseJoints = self.get_id_by_name(gripperBases)
+        self.gripperBaseControlID = self.get_control_id_by_name(gripperBases)
 
         # Get ID for end effector
-        self.eeName = ["right_hand"]
-        self.eefID = self.get_id_by_name(self.eeName)[0]
+        self.eefID = self.get_id_by_name([ee_name])[0]
 
+        # TODO move to cfg
         self.armHome = [
             -0.01863332,
             -1.30851021,
@@ -143,15 +144,10 @@ class RobotSim:
         self.ori = [0, 3.14, np.pi / 2]
         self.tol = 1e-9
 
+        # add object to allsight
         self.allsights.add_body(self.obj)
-
-        allsight_joints = ["finger_3_2_to_finger_3_3",
-                           "finger_2_2_to_finger_2_3",
-                           "finger_1_2_to_finger_1_3"]
-
         self.sensorLinks = self.get_id_by_name(allsight_joints)
-
-        self.allsights.add_camera(robotID, self.sensorLinks)
+        self.allsights.add_camera(self.robotID, self.sensorLinks)
 
         self.init_robot()
 
@@ -184,8 +180,8 @@ class RobotSim:
                 continue
 
             # skip base joint
-            if jointInfo[-1] == -1:
-                continue
+            # if jointInfo[-1] == -1:
+            #     continue
 
             jointNames[name] = ctlID
             ctlID += 1
@@ -309,21 +305,12 @@ class RobotSim:
             pb.setJointMotorControl2(bodyUniqueId=self.robotID,
                                      jointIndex=joint,
                                      controlMode=pb.VELOCITY_CONTROL,
-                                     targetVelocity=0,
+                                     targetVelocity=0.1,
                                      targetPosition=pb.getJointState(self.robotID, joint).joint_position,
                                      force=gripForce * 100)
 
         # color, depth = self.allsights.render()
         # self.allsights.updateGUI(color, depth)
-
-    def update_input(self):
-
-        x = pb.readUserDebugParameter(self.xin)
-        y = pb.readUserDebugParameter(self.yin)
-        z = pb.readUserDebugParameter(self.zin)
-
-        pos = [x, y, z]
-        self.go(pos, wait=False)
 
     # Gripper close
     def gripper_close(self, width=None, max_torque=None):

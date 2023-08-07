@@ -424,6 +424,7 @@
     <parent link="right_l6"/>
     <child link="right_hand"/>
   </joint>
+
   <link name="screen">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
