@@ -18,12 +18,12 @@ The handle for OSMesa is osmesa.
 Default is pyglet, which requires active window
 """
 
-import os
-os.environ["PYOPENGL_PLATFORM"] = "egl"
+# import os
+# os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 import logging
 import copy
-
+import os
 import cv2
 import numpy as np
 import pybullet as p
@@ -71,11 +71,9 @@ class Renderer:
         :param config_path:
         """
 
-        # if headless:
-        #     import os
-
-        #     os.environ["PYOPENGL_PLATFORM"] = "egl"
-
+        if headless:
+            os.environ["PYOPENGL_PLATFORM"] = "egl"
+            
         self._width = width
         self._height = height
 

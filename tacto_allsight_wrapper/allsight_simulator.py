@@ -111,9 +111,8 @@ class Simulator:
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
-        # Create control panel to control the 6DoF pose of the object
-        # self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
-        # self.panel.start()
+        # load control panel config
+        self.object_control_panel = cfg.object_control_panel
 
     def start(self):
         '''Start the simulation thread
@@ -127,6 +126,11 @@ class Simulator:
         '''
 
         self.start()
+        
+        # show panel
+        self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
+        self.panel.start()
+        
         while True:
             color, depth = self.allsight.render()
             self.allsight.updateGUI(color, depth)
@@ -208,7 +212,7 @@ class Simulator:
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
-                time.sleep(0.05)
+                time.sleep(0.01)
 
                 pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
                                      jointChildFrameOrientation=push_point_end[1],
@@ -217,7 +221,7 @@ class Simulator:
                 for _ in range(5):
 
                     color, depth = self.allsight.render()
-                    time.sleep(0.03)
+                    time.sleep(0.01)
 
                     if np.sum(depth):
                         self.allsight.updateGUI(color, depth)

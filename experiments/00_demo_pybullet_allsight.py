@@ -30,7 +30,6 @@ def main(cfg):
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
     summary = OmegaConf.to_container(cfg.summary)
 
     simulator = Simulator(cfg=cfg.allsight,

@@ -7,7 +7,7 @@ import pyrender
 from omegaconf import OmegaConf, DictConfig
 from scipy.spatial.transform import Rotation as R
 
-from tacto import Renderer, Sensor
+from tacto import Renderer as tRenderer, Sensor as tSensor
 
 
 # helper functions
@@ -35,7 +35,7 @@ def circle_mask(size=(480, 480), border=0):
     return mask
 
 
-class Renderer(Renderer):
+class Renderer(tRenderer):
     '''allsight custom renderer
 
     Parameters
@@ -45,7 +45,7 @@ class Renderer(Renderer):
     '''
 
     def __init__(self, width, height, background, config_path):
-        super().__init__(width, height, background, config_path, headless=True)
+        super().__init__(width, height, background, config_path, headless=False)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
         if calibration:
@@ -187,7 +187,7 @@ def get_allsight_config_path():
     return _get_default_config("config_allsight.yml")
 
 
-class Sensor(Sensor):
+class Sensor(tSensor):
     def __init__(
             self,
             width=120,
