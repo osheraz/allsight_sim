@@ -23,7 +23,7 @@ Default is pyglet, which requires active window
 
 import logging
 import copy
-
+import os
 import cv2
 import numpy as np
 import pybullet as p
@@ -62,7 +62,7 @@ def matrix2trans(matrix):
 
 DEBUG = False
 class Renderer:
-    def __init__(self, width, height, background, config_path, headless=True):
+    def __init__(self, width, height, background, config_path, headless=False):
         """
 
         :param width: scalar
@@ -72,10 +72,8 @@ class Renderer:
         """
 
         if headless:
-            import os
-
             os.environ["PYOPENGL_PLATFORM"] = "egl"
-
+            
         self._width = width
         self._height = height
 

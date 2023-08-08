@@ -26,7 +26,8 @@ from tacto_allsight_wrapper import allsight_wrapper
 PATH = os.path.join(os.path.dirname(__file__), "../")
 sys.path.insert(0, PATH)
 from experiments.utils.logger import DataSimLogger
-from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, convert_quat_wxyz_to_xyzw
+from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, \
+    convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
 from transformations import translation_matrix, translation_from_matrix, quaternion_matrix, quaternion_from_matrix
 
@@ -110,9 +111,14 @@ class Simulator:
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
+<<<<<<< HEAD
         # # Create control panel to control the 6DoF pose of the object
         # self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
         # self.panel.start()
+=======
+        # load control panel config
+        self.object_control_panel = cfg.object_control_panel
+>>>>>>> test-collect_data
 
     def start(self):
         '''Start the simulation thread
@@ -126,6 +132,11 @@ class Simulator:
         '''
 
         self.start()
+        
+        # show panel
+        self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
+        self.panel.start()
+        
         while True:
             color, depth = self.allsight.render()
             self.allsight.updateGUI(color, depth)
@@ -146,20 +157,20 @@ class Simulator:
         due to limitation of pybullet orientation handling,
         instead of changing the constraint, we recreate it every timestamp
         '''
-        # (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
-        # init_xyz = [self._obj_x, self._obj_y, self._obj_z]
+        (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
+        init_xyz = [self._obj_x, self._obj_y, self._obj_z]
 
-        # self.cid = pyb.createConstraint(
-        #     self.obj.id,  # parent body unique id
-        #     -1,  # parent link index (or -1 for the base)
-        #     -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
-        #     -1,  # child link index, or -1 for the base
-        #     pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
-        #     [0, 0, 0],  # joint axis, in child link frame
-        #     [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
-        #     init_xyz
-        #     # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
-        # )
+        self.cid = pyb.createConstraint(
+            self.obj.id,  # parent body unique id
+            -1,  # parent link index (or -1 for the base)
+            -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
+            -1,  # child link index, or -1 for the base
+            pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
+            [0, 0, 0],  # joint axis, in child link frame
+            [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
+            init_xyz
+            # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
+        )
 
         # create data logger object
         self.logger = DataSimLogger(conf["save_prefix"],
@@ -186,18 +197,16 @@ class Simulator:
 
         for q in Q:
 
+            # Calculate the new orientation by adding the desired rotation
+            new_euler = [current_euler[0], current_euler[1], current_euler[2] + q]
+            new_quat = pyb.getQuaternionFromEuler(new_euler)
+
+            self.body.set_base_pose(position=current_pos, orientation=new_quat)
+            pyb.stepSimulation()
+
             for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
 
-                removed = False
-                if i == self.cyl_split: continue
-
-                # Calculate the new orientation by adding the desired rotation
-                new_euler = [current_euler[0], current_euler[1], current_euler[2] + q]
-                new_quat = pyb.getQuaternionFromEuler(new_euler)
-
-                self.body.set_base_pose(position=current_pos, orientation=new_quat)
-                pyb.stepSimulation()
-
+<<<<<<< HEAD
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
                 # pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
@@ -207,29 +216,34 @@ class Simulator:
                 self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
                                                 childFramePosition=push_point_start[0],
                                                 childFrameOrientation=push_point_start[1])
+=======
+                if i == self.cyl_split: continue
+
+                push_point_start, push_point_end = self.get_push_point_by_index(0, i)
+
+                pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
+                                     jointChildFrameOrientation=push_point_start[1],
+                                     maxForce=50)
+
+                if i == self.top_split + self.cyl_split - 1 and q!= 0: continue
+>>>>>>> test-collect_data
 
                 # self.obj.set_base_pose(position=push_point_start[0], orientation=push_point_start[1])
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
-                time.sleep(0.1)
+                time.sleep(0.01)
 
-                pyb.removeConstraint(self.cid)
-
-                # pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
-                #                      jointChildFrameOrientation=push_point_end[1],
-                #                      maxForce=f_push)
-
-                self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
-                                                childFramePosition=push_point_end[0],
-                                                childFrameOrientation=push_point_end[1])
+                pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
+                                     jointChildFrameOrientation=push_point_end[1],
+                                     maxForce=20)
 
                 # self.obj.set_base_pose(position=push_point_end[0], orientation=push_point_end[1])
 
                 for _ in range(5):
 
                     color, depth = self.allsight.render()
-                    time.sleep(0.05)
+                    time.sleep(0.01)
 
                     if np.sum(depth):
                         self.allsight.updateGUI(color, depth)
@@ -237,17 +251,21 @@ class Simulator:
                         # time.sleep(0.05)
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
+                        # TODO: should be fixed by calibration
                         pose[0] -= np.sign(pose[0]) * 0.002  # radi
                         pose[1] -= np.sign(pose[1]) * 0.002  # radi
-                        pose[2] -= self.base_h + 0.006       # base_h
+                        pose[2] -= self.base_h + 0.004  # base_h + safe_zone
 
                         rot = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
 
-                        trans_mat, rot_mat = translation_matrix(pose), quaternion_matrix(convert_quat_xyzw_to_wxyz(rot))
+                        trans_mat, rot_mat = translation_matrix(pose), quaternion_matrix(
+                            convert_quat_xyzw_to_wxyz(rot))
                         T_finger_origin_press = np.dot(trans_mat, rot_mat)
-                        T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(q, zaxis), T_finger_origin_press)
+                        T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(-q, zaxis),
+                                                                   T_finger_origin_press)
                         pose = translation_from_matrix(T_finger_origin_press_rotate_q).tolist()
-                        rot = convert_quat_wxyz_to_xyzw(quaternion_from_matrix(T_finger_origin_press_rotate_q).tolist())
+                        rot = convert_quat_wxyz_to_xyzw(
+                            quaternion_from_matrix(T_finger_origin_press_rotate_q).tolist())
 
                         force = self.allsight.get_force('cam0')['2_-1']
 
@@ -258,14 +276,15 @@ class Simulator:
                                            color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
-                        pyb.removeConstraint(self.cid)
-                        removed = True
                         break
 
+<<<<<<< HEAD
                 if not removed:
                     pyb.removeConstraint(self.cid)
                     removed = True
 
+=======
+>>>>>>> test-collect_data
             if conf['save']: self.logger.save_batch_images()
 
         self.logger.save_data_dict()
@@ -347,52 +366,3 @@ class Simulator:
             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
-
-    def update_pose_given_point(self, point, press_depth, shear_mag, delta=0):
-        """
-        Convert meter to pixels
-        """
-        sensor_vertices = self.allsight.renderer.sensor_vertices
-        sensor_normals = self.allsight.renderer.sensor_normals
-
-        dist = np.linalg.norm(point - sensor_vertices, axis=1)
-        idx = np.argmin(dist)
-
-        # idx: the idx vertice, get a new pose
-        new_position = sensor_vertices[idx].copy()
-        new_orientation = sensor_normals[idx].copy()
-
-        delta = np.random.uniform(low=0.0, high=2 * np.pi, size=(1,))[0]
-
-        from contrib.pose import pose_from_vertex_normal
-
-        new_pose = pose_from_vertex_normal(
-            new_position, new_orientation, shear_mag, delta
-        ).squeeze()
-        self.update_pose_given_pose(press_depth, new_pose)
-
-    def update_pose_given_pose(self, press_depth, obj_pos):
-        """
-        Given tf gel_pose and press_depth, update tacto camera
-        """
-        self.press_depth = press_depth
-        press_pos = self.add_press(obj_pos)
-
-        def matrix2quaternion(matrix):
-            r = R.from_matrix(matrix[:3, :3])
-            quaternion = r.as_quat()
-            translation = matrix[:3, 3]
-            return quaternion, translation
-
-        ori, pos = matrix2quaternion(press_pos)
-        self.obj.set_base_pose(position=pos, orientation=ori)
-
-        # self.allsight.renderer.update_object_pose_from_matrix('2_-1', press_pos)
-
-    def add_press(self, pose):
-        """
-        Add sensor penetration
-        """
-        pen_mat = np.eye(4)
-        pen_mat[2, 3] = -self.press_depth
-        return np.matmul(pose, pen_mat)

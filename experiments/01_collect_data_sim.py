@@ -46,8 +46,8 @@ def main(cfg):
 
     # create simulator object
     simulator = Simulator(cfg=cfg.allsight,
-                          summary=summary,
-                          with_bg=cfg.with_bg)
+                        summary=summary,
+                        with_bg=cfg.with_bg)
 
     # create env
     simulator.create_env(cfg.allsight, obj_id=summary["indenter"])
