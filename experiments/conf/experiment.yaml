@@ -17,11 +17,11 @@ summary:
 
 # used only for collect_data
   method: press
-  start_from: 12
+  start_from: 30
   up_to: 30
   gel: clear
-  angle_split: 15
-  cyl_split: 20
-  top_split: 4
-  save: False
-  save_prefix: id3_force10_deformation0008_yfov115_camera0001_std3
+  angle_split: 250
+  cyl_split: 50
+  top_split: 5
+  save: True
+  save_prefix: id3_force1_deformation0007
