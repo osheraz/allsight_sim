@@ -41,7 +41,7 @@ def main(cfg):
     p.resetDebugVisualizerCamera(**cfg.pybullet_camera)
 
     # Add allegro hand
-    allegro = px.Body(**cfg.allegro)
+    allegro = px.Body(**cfg.allegro,flags=p.URDF_USE_SELF_COLLISION)
 
     # Add cameras to tacto simulator
     allsights.add_camera(allegro.id, cfg.allsight_link_id_openhand)

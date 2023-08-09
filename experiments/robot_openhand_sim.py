@@ -98,7 +98,7 @@ def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
 
 log = Log("data/grasp")
 
-rob = InsertionEnv(robot_name='sawyer')
+rob = InsertionEnv(robot_name='kuka')
 
 rob.go(rob.pos, wait=True)
 
@@ -152,6 +152,7 @@ while True:
     elif t > 30:
         # Save the data
         objPos, objOri = rob.get_object_pose()
+
 
         if objPos[2] - objPos0[2] < 60 * dz * 0.8:
             # Fail

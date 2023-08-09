@@ -4,18 +4,7 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="openhand" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- swivel -->
-  <!-- swivel -->
-  <!-- swivel -->
-  <!-- swivel -->
-  <!-- Tool frame used by the arm -->
-  <!--link name="${prefix}tool_frame"/>
-    <joint name="${prefix}tool_frame_joint" type="fixed">
-        <origin xyz="0 0 0.130" rpy="0 0 1.57079632679079632679" />
-        <parent link="${parent}" />
-        <child link="${prefix}tool_frame" />
-        <axis xyz="0 0 0" />
-    </joint-->
+
   <!-- Gripper description -->
 
   <link name="gripper_base_link">
@@ -67,7 +56,6 @@
 
   <link name="finger_1_2">
     <inertial>
-      <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
@@ -90,6 +78,11 @@
   </link>
 
   <link name="finger_1_3">
+      <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
     <visual>
       <geometry>
         <mesh filename="package://allegro_hand_description/meshes/allsight_fine01.STL"/>
@@ -130,7 +123,6 @@
 
   <link name="finger_2_2">
     <inertial>
-      <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
@@ -153,6 +145,11 @@
   </link>
 
   <link name="finger_2_3">
+      <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
     <visual>
       <geometry>
         <mesh filename="package://allegro_hand_description/meshes/allsight_fine01.STL"/>
@@ -170,7 +167,6 @@
 
   <link name="finger_3_2">
     <inertial>
-      <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
@@ -193,6 +189,11 @@
   </link>
 
   <link name="finger_3_3">
+      <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
     <visual>
       <geometry>
         <mesh filename="package://allegro_hand_description/meshes/allsight_fine01.STL"/>
@@ -282,22 +283,7 @@
     <dynamics damping="5" friction="0.0"/>
   </joint>
 
-  <!-- gripper main fixed joint-->
-  <joint name="tool_frame_joint" type="fixed">
-    <parent link="gripper_base_link"/>
-    <child link="tool_frame"/>
-    <!--    <origin xyz="-0.1 0.0 0.0" rpy="0 0 0" />-->
-    <origin rpy="0 0.0 0.0" xyz="-0.1 0 0"/>
-  </joint>
 
-  <!-- End Effector -->
-  <link name="tool_frame"/>
-  <link name="camera"/>
-  <joint name="camera_joint" type="fixed">
-    <origin rpy="0 -1.57079632679079632679 0" xyz="0 0 0"/>
-    <parent link="gripper_base_link"/>
-    <child link="camera"/>
-  </joint>
 
 </robot>
 
