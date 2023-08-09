@@ -13,7 +13,7 @@ summary:
 # used for both demo & collect_data
   name: collect_data
   indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
-  leds: rrrgggbbb
+  leds: white
 
 # used only for collect_data
   method: press

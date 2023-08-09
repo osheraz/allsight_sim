@@ -182,6 +182,9 @@ class Simulator:
         frame_count = 0
 
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
+        K2 = np.linspace(0.04, 0.09, self.top_split)
+        K1 = np.linspace(0.07, 0.11, self.cyl_split + self.top_split)
+
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
 
@@ -193,7 +196,7 @@ class Simulator:
 
             self.body.set_base_pose(position=current_pos, orientation=new_quat)
             pyb.stepSimulation()
-
+            #
             for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
 
                 if i == self.cyl_split: continue
@@ -210,19 +213,24 @@ class Simulator:
                 self.allsight.updateGUI(color, depth)
                 time.sleep(0.05)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
-                                     jointChildFrameOrientation=push_point_end[1],
-                                     maxForce=20)
+                for f in range(80, 100):
 
-                for _ in range(5):
+                    if i <= self.cyl_split:
+                        force = f * K1[i]
+                    else:
+                        force = f * K2[self.cyl_split + self.top_split - i]
+
+                    pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
+                                         jointChildFrameOrientation=push_point_end[1],
+                                         maxForce=force)
 
                     color, depth = self.allsight.render()
-                    time.sleep(0.03)
+                    self.allsight.updateGUI(color, depth)
+                    pyb.stepSimulation()
+                    time.sleep(0.05)
 
                     if np.sum(depth):
-                        self.allsight.updateGUI(color, depth)
 
-                        # time.sleep(0.05)
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
                         # TODO: should be fixed by calibration
@@ -250,7 +258,7 @@ class Simulator:
                                            color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
-                        break
+
 
             if conf['save']: self.logger.save_batch_images()
 
@@ -310,15 +318,15 @@ class Simulator:
             phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
             B = np.asarray([
-                self.cyl_r * np.sin(phi) * np.cos(q),
-                self.cyl_r * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * np.cos(phi),
+                (self.cyl_r) * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * np.cos(phi),
             ])
 
             B2 = np.asarray([
-                self.cyl_r * G * np.sin(phi) * np.cos(q),
-                self.cyl_r * G * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * G * np.cos(phi),
+                (self.cyl_r) * G * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * G * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * G * np.cos(phi),
             ])
 
             Ry = rotation_matrix(phi, yaxis)
