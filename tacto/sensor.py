@@ -301,38 +301,6 @@ class Sensor:
             # concatenate depths horizontally (axis=1)
             depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
 
-            depth_image = depth.copy()
-            depth_image = cv2.cvtColor(depth_image, cv2.COLOR_RGB2GRAY)
-            dp = 1  # Inverse ratio of the accumulator resolution to the image resolution (1 = same resolution)
-            minDist = 100  # Minimum distance between the centers of detected circles
-            param1 = 50   # Upper threshold for the internal Canny edge detector
-            param2 = 10   # Threshold for center detection.
-            minRadius = 3  # Minimum radius of the detected circles
-            maxRadius = 80  # Maximum radius of the detected circles
-
-            # Apply the Hough Circle Transform
-            circles = cv2.HoughCircles(depth_image, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
-
-            if circles is not None:
-                # Convert the (x, y) coordinates and radius of the circles to integers
-                circles = np.round(circles[0, :]).astype("int")
-
-                for (x, y, r) in circles:
-                    # Draw the circle on the original image
-                    cv2.circle(depth, (x, y), r, (0, 255, 0), 4)
-                    # Draw a small circle at the center of the detected circle
-                    cv2.circle(depth, (x, y), 2, (0, 0, 255), 3)
-
-                # Show the resulting image with circles and center points
-                # cv2.imshow("Circle Detection", depth_image)
-                # cv2.waitKey(0)
-                # cv2.destroyAllWindows()
-                
-            else:
-                # print("No circles were detected.")
-                pass
-                        
-            depth_image = cv2.cvtColor(depth_image, cv2.COLOR_GRAY2RGB)
             # concatenate the resulting two images vertically (axis=0)
             color_n_depth = np.concatenate([color, depth], axis=0)
 

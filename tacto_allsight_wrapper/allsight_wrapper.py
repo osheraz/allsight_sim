@@ -19,7 +19,7 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
     return pose
 
 
-def circle_mask(size=(480, 480), border=0):
+def circle_mask(size=(224, 224), border=0):
     """
         used to filter center circular area of a given image,
         corresponding to the AllSight surface area
@@ -196,6 +196,7 @@ class Sensor(tSensor):
             config_path=get_allsight_config_path(),
             visualize_gui=True,
             show_depth=True,
+            show_cv_detect=False,
             zrange=0.002,
             cid=0,
     ):
@@ -206,6 +207,7 @@ class Sensor(tSensor):
         :param background: image
         :param visualize_gui: Bool
         :param show_depth: Bool
+        :param show_cv_detect: Bool
         :param config_path:
         :param cid: Int
         """
@@ -214,6 +216,7 @@ class Sensor(tSensor):
 
         self.visualize_gui = visualize_gui
         self.show_depth = show_depth
+        self.show_cv_detect= show_cv_detect
         self.zrange = zrange
 
         self.cameras = {}
@@ -262,9 +265,10 @@ class Sensor(tSensor):
             mask = circle_mask()
             color[0][mask == 0] = 0
 
+                
             colors += color
             depths += depth
-
+            
         return colors, depths
 
     def _blur_contact(self, color: np.ndarray, depth_map: np.ndarray) -> list:
@@ -327,3 +331,63 @@ class Sensor(tSensor):
                                  blur.add_weighted.bias, dtype=cv2.CV_8U)
 
         return [result]
+
+    def updateGUI(self, colors, depths, colors_gan=[]):
+            """
+            Update images for visualization
+            """
+            if not self.visualize_gui:
+                return
+
+            # concatenate colors horizontally (axis=1)
+            color = np.concatenate(colors, axis=1)
+            if len(colors_gan)!=0: 
+                color_gan = np.concatenate(colors_gan, axis=1)
+            
+            if self.show_depth:
+                # concatenate depths horizontally (axis=1)
+                depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
+
+                if self.show_cv_detect:
+                    depth_image = depth.copy()
+                    depth_image = cv2.cvtColor(depth_image, cv2.COLOR_RGB2GRAY)
+                    dp = 1  # Inverse ratio of the accumulator resolution to the image resolution (1 = same resolution)
+                    minDist = 100  # Minimum distance between the centers of detected circles
+                    param1 = 50   # Upper threshold for the internal Canny edge detector
+                    param2 = 10   # Threshold for center detection.
+                    minRadius = 3  # Minimum radius of the detected circles
+                    maxRadius = 80  # Maximum radius of the detected circles
+
+                    # Apply the Hough Circle Transform
+                    circles = cv2.HoughCircles(depth_image, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+
+                    if circles is not None:
+                        # Convert the (x, y) coordinates and radius of the circles to integers
+                        circles = np.round(circles[0, :]).astype("int")
+
+                        for (x, y, r) in circles:
+                            # Draw the circle on the original image
+                            cv2.circle(depth, (x, y), r, (0, 255, 0), 4)
+                            # Draw a small circle at the center of the detected circle
+                            cv2.circle(depth, (x, y), 2, (0, 0, 255), 3)
+
+                else:
+                    # print("No circles were detected.")
+                    pass
+                
+                if self.show_cv_detect:    
+                    depth_image = cv2.cvtColor(depth_image, cv2.COLOR_GRAY2RGB)
+                
+                # concatenate the resulting two images vertically (axis=0)
+                if len(colors_gan)==0:
+                    color_n_depth = np.concatenate([color, depth], axis=0)
+                else:
+                    color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
+                cv2.imshow(
+                    "color and depth", cv2.cvtColor(color_n_depth, cv2.COLOR_RGB2BGR)
+                )
+            else:
+                cv2.imshow("color", cv2.cvtColor(color, cv2.COLOR_RGB2BGR))
+
+            cv2.waitKey(1)
+

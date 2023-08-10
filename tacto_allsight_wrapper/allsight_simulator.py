@@ -15,6 +15,9 @@ import numpy as np
 from typing import Any
 from omegaconf import DictConfig
 import shutup;
+import torch
+from util.util import tensor2im
+
 
 shutup.please()
 
@@ -25,6 +28,7 @@ from tacto_allsight_wrapper import allsight_wrapper
 # import allsight wrapper
 PATH = os.path.join(os.path.dirname(__file__), "../")
 sys.path.insert(0, PATH)
+from experiments.models import networks, pre_process
 from experiments.utils.logger import DataSimLogger
 from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, \
     convert_quat_wxyz_to_xyzw
@@ -38,9 +42,6 @@ origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 class Simulator:
 
     def __init__(self, cfg: DictConfig,
-                 summary: dict,
-                 with_bg=False,
-                 attributes: dict = None
                  ):
 
         '''Simulator object for defining simulation scene with allsight sensor
@@ -49,26 +50,47 @@ class Simulator:
         ----------
         cfg : DictConfig
             allsight config dict -> allsight.yaml
-        with_bg : bool, optional
-            Use background img, by default False
-        attributes : dict, optional
-            Set object attributes if needed, by default None
         '''
 
         # bg image
-        leds = summary['leds']
+        leds = cfg.summary.leds
         bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}.jpg"))
         conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
         self.allsight = allsight_wrapper.Sensor(
-            **cfg.tacto, **{"config_path": conf_path},
-            background=bg if with_bg else None
+            **cfg.allsight.tacto, **{"config_path": conf_path},
+            background=bg if cfg.with_bg else None,
+            show_depth=cfg.show_depth,
+            show_cv_detect=cfg.show_detect 
         )
 
-        self.base_h = cfg.sensor_dims.base_h
-        self.cyl_h = cfg.sensor_dims.cyl_h
-        self.cyl_r = cfg.sensor_dims.cyl_r
+        self.base_h = cfg.allsight.sensor_dims.base_h
+        self.cyl_h = cfg.allsight.sensor_dims.cyl_h
+        self.cyl_r = cfg.allsight.sensor_dims.cyl_r
+        
+        
+        self.is_sim2real = cfg.sim2real.enable 
+        if self.is_sim2real:
+            opt = {
+                "preprocess": "resize_and_crop",
+                "crop_size": 224,
+                "load_size": 224,
+                "no_flip": True,
+            }
+            
+            self.transform = pre_process.get_transform(opt=opt)
+            
+            self.model_G = networks.define_G(input_nc=3,
+                                            output_nc=3,
+                                            ngf=64,
+                                            netG="resnet_9blocks",
+                                            norm="instance",
+                                            )
+            
+            self.model_G.load_state_dict(torch.load(cfg.sim2real.model_G))
+            self.model_G.eval()
+        
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -131,9 +153,16 @@ class Simulator:
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
         
+        
         while True:
+            colors_gan = []
             color, depth = self.allsight.render()
-            self.allsight.updateGUI(color, depth)
+            if self.is_sim2real:
+                for i in range(len(color)):
+                    color_tensor = self.transform(color[i]).unsqueeze(0)
+                    colors_gan.append(tensor2im(self.model_G(color_tensor)))
+            
+            self.allsight.updateGUI(color,depth,colors_gan=colors_gan)
 
         self.t.stop()
 

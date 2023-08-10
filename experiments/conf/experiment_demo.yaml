@@ -1,0 +1,25 @@
+hydra:
+  run:
+    dir: experiments/conf/saved_configs/${summary.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+
+defaults:
+  - _self_
+  - allsight: allsight
+  - override hydra/job_logging: disabled # disabled | default
+
+with_bg: True # add background reference frame
+show_depth: True # visualize depth
+show_detect: False # visulize detection work only if true and show_depth true
+
+summary:
+# used for both demo & collect_data
+  name: demo
+  indenter: cube # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
+  leds: rrrgggbbb # white | rrrgggbbb | rgbrgbrgb
+
+sim2real:
+  enable: True
+  model_G: ../experiments/models/GAN/180_net_G_B.pth # path for the pth model of the generator
+  model_R: # path for the pth model of the regressor
+
+
