@@ -112,8 +112,8 @@ class Simulator:
             pyb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
         )
 
-        # pyb.connect(pyb.DIRECT)
-        # pyb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+        pyb.connect(pyb.DIRECT)
+        pyb.setGravity(0, 0, 0)  # Major Tom to planet Earth
 
         self.body = px.Body(**cfg.allsight)
 
@@ -215,6 +215,13 @@ class Simulator:
         frame_count = 0
 
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
+
+        K1 = np.linspace(0.07, 0.1, self.cyl_split)
+        K2 = np.linspace(0.06, 0.09, self.top_split)
+
+        f_start_pi_10 = 80
+        f_end_pi_10 = 100
+
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
 
@@ -233,29 +240,36 @@ class Simulator:
 
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
+                pyb.changeConstraint(self.cid,
+                                     jointChildPivot=push_point_start[0],
                                      jointChildFrameOrientation=push_point_start[1],
-                                     maxForce=50)
+                                     maxForce=200)
+                pyb.stepSimulation()
 
-                if i == self.top_split + self.cyl_split - 1 and q!= 0: continue
+                if i == self.top_split + self.cyl_split - 1 and q != 0: continue
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
                 time.sleep(0.01)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
-                                     jointChildFrameOrientation=push_point_end[1],
-                                     maxForce=20)
+                for f in range(f_start_pi_10, f_end_pi_10):
 
-                for _ in range(5):
+                    if i <= self.cyl_split:
+                        force = f * K1[i]
+                    else:
+                        force = f * K2[self.cyl_split + self.top_split - i]
+
+                    pyb.changeConstraint(self.cid,
+                                         jointChildPivot=push_point_end[0],
+                                         jointChildFrameOrientation=push_point_end[1],
+                                         maxForce=force)
 
                     color, depth = self.allsight.render()
-                    time.sleep(0.01)
+                    self.allsight.updateGUI(color, depth)
+                    pyb.stepSimulation()
+                    time.sleep(0.05)
 
                     if np.sum(depth):
-                        self.allsight.updateGUI(color, depth)
-
-                        # time.sleep(0.05)
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
                         # TODO: should be fixed by calibration
@@ -283,7 +297,6 @@ class Simulator:
                                            color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
-                        break
 
             if conf['save']: self.logger.save_batch_images()
 
@@ -343,15 +356,15 @@ class Simulator:
             phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
             B = np.asarray([
-                self.cyl_r * np.sin(phi) * np.cos(q),
-                self.cyl_r * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * np.cos(phi),
+                (self.cyl_r) * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * np.cos(phi),
             ])
 
             B2 = np.asarray([
-                self.cyl_r * G * np.sin(phi) * np.cos(q),
-                self.cyl_r * G * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * G * np.cos(phi),
+                (self.cyl_r) * G * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * G * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * G * np.cos(phi),
             ])
 
             Ry = rotation_matrix(phi, yaxis)
