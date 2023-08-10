@@ -182,8 +182,9 @@ class Simulator:
         frame_count = 0
 
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
-        K2 = np.linspace(0.04, 0.09, self.top_split)
-        K1 = np.linspace(0.07, 0.11, self.cyl_split + self.top_split)
+
+        K1 = np.linspace(0.07, 0.11, self.cyl_split)
+        K2 = np.linspace(0.05, 0.09, self.top_split)
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
@@ -203,11 +204,13 @@ class Simulator:
 
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
+                pyb.changeConstraint(self.cid,
+                                     jointChildPivot=push_point_start[0],
                                      jointChildFrameOrientation=push_point_start[1],
-                                     maxForce=50)
+                                     maxForce=200)
+                pyb.stepSimulation()
 
-                if i == self.top_split + self.cyl_split - 1 and q!= 0: continue
+                if i == self.top_split + self.cyl_split - 1 and q != 0: continue
 
                 color, depth = self.allsight.render()
                 self.allsight.updateGUI(color, depth)
@@ -217,10 +220,13 @@ class Simulator:
 
                     if i <= self.cyl_split:
                         force = f * K1[i]
+                    elif i == self.cyl_split + self.top_split - 2 :
+                        force = f * 0.05
                     else:
                         force = f * K2[self.cyl_split + self.top_split - i]
 
-                    pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
+                    pyb.changeConstraint(self.cid,
+                                         jointChildPivot=push_point_end[0],
                                          jointChildFrameOrientation=push_point_end[1],
                                          maxForce=force)
 
@@ -230,7 +236,6 @@ class Simulator:
                     time.sleep(0.05)
 
                     if np.sum(depth):
-
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
                         # TODO: should be fixed by calibration
@@ -258,7 +263,6 @@ class Simulator:
                                            color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
-
 
             if conf['save']: self.logger.save_batch_images()
 
