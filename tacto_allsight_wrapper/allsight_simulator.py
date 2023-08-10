@@ -90,8 +90,8 @@ class Simulator:
             pyb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
         )
 
-        # pyb.connect(pyb.DIRECT)
-        # pyb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+        pyb.connect(pyb.DIRECT)
+        pyb.setGravity(0, 0, 0)  # Major Tom to planet Earth
 
         self.body = px.Body(**cfg.allsight)
 
@@ -183,8 +183,11 @@ class Simulator:
 
         Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
 
-        K1 = np.linspace(0.07, 0.11, self.cyl_split)
-        K2 = np.linspace(0.05, 0.09, self.top_split)
+        K1 = np.linspace(0.07, 0.1, self.cyl_split)
+        K2 = np.linspace(0.06, 0.09, self.top_split)
+
+        f_start_pi_10 = 80
+        f_end_pi_10 = 100
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
@@ -197,7 +200,7 @@ class Simulator:
 
             self.body.set_base_pose(position=current_pos, orientation=new_quat)
             pyb.stepSimulation()
-            #
+
             for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
 
                 if i == self.cyl_split: continue
@@ -216,12 +219,10 @@ class Simulator:
                 self.allsight.updateGUI(color, depth)
                 time.sleep(0.05)
 
-                for f in range(80, 100):
+                for f in range(f_start_pi_10, f_end_pi_10):
 
                     if i <= self.cyl_split:
                         force = f * K1[i]
-                    elif i == self.cyl_split + self.top_split - 2 :
-                        force = f * 0.05
                     else:
                         force = f * K2[self.cyl_split + self.top_split - i]
 
