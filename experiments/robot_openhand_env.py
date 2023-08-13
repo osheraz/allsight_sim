@@ -5,7 +5,7 @@
 
 import numpy as np
 import pybullet as pb
-from pyquaternion import Quaternion
+# from pyquaternion import Quaternion
 from scipy.spatial import ConvexHull, distance
 from time import time
 from time import sleep
@@ -31,7 +31,8 @@ class InsertionEnv:
 
     def __init__(self, robot_name='panda',
                  obj_start_pos=None,
-                 obj_start_ori=None):
+                 obj_start_ori=None,
+                 allsight_display=False):
 
         # Init finger tips
         rel_path = os.path.join(os.path.dirname(__file__), "../")
@@ -40,7 +41,7 @@ class InsertionEnv:
         conf_path = os.path.join(rel_path, f"experiments/conf/sensor/config_allsight_rrrgggbbb.yml")
 
         self.allsights = allsight_wrapper.Sensor(
-            width=224, height=224, visualize_gui=True, **{"config_path": conf_path},
+            width=224, height=224, visualize_gui=allsight_display, **{"config_path": conf_path},
             background=bg if True else None
         )
 
@@ -48,11 +49,11 @@ class InsertionEnv:
         cid = px.init()
         print(pb.getPhysicsEngineParameters(cid))
 
-        logging.info("Initializing world")
+        # logging.info("Initializing world")
         # physicsClient = pb.connect(pb.DIRECT)
         pb.setPhysicsEngineParameter(solverResidualThreshold=0)
         pb.setAdditionalSearchPath(pybullet_data.getDataPath())  # optionally
-        pb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+        # pb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
 
         pb.resetDebugVisualizerCamera(
             cameraDistance=0.6,
@@ -69,6 +70,7 @@ class InsertionEnv:
         if robot_name == 'sawyer':
             robotURDF = "../assets/robots/sawyer_openhand.urdf"
             self.armNames = ["right_j" + str(i) for i in range(7)]
+            self.armHome = [-0.01863332, -1.30851021, -0.55159919, 1.58025131, 0.14144625, 1.33963365, -1.98302146, ]
             ee_name = 'right_hand'
         elif robot_name == 'panda':
             robotURDF = "../assets/robots/panda_openhand.urdf"
@@ -78,6 +80,7 @@ class InsertionEnv:
             robotURDF = "../assets/robots/iiwa14_openhand.urdf"
             ee_name = 'iiwa_gripper_tip_joint'
             self.armNames = ["iiwa_joint_" + str(i) for i in range(1, 8)]
+            self.armHome = [0, -0.5592432, 0, 1.733180, 0, -0.8501557, 0]
 
         self.robot = px.Body(robotURDF, use_fixed_base=True, flags=pb.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
@@ -102,17 +105,15 @@ class InsertionEnv:
 
         # Get link/joint ID for gripper
         gripperNames = [
-            # "base_to_finger_1_1",
             "finger_1_1_to_finger_1_2",
             "finger_1_2_to_finger_1_3",
-            # "base_to_finger_2_1",
             "finger_2_1_to_finger_2_2",
             "finger_2_2_to_finger_2_3",
             "base_to_finger_3_2",
             "finger_3_2_to_finger_3_3"
         ]
         gripperBases = ['base_to_finger_1_1',
-                         'base_to_finger_2_1']
+                        'base_to_finger_2_1']
 
         allsight_joints = ["finger_3_2_to_finger_3_3",
                            "finger_2_2_to_finger_2_3",
@@ -127,28 +128,6 @@ class InsertionEnv:
         # Get ID for end effector
         self.eefID = self.get_id_by_name([ee_name])[0]
 
-        # TODO move to cfg
-        self.armHome = [
-            -0.01863332,
-            -1.30851021,
-            -0.55159919,
-            1.58025131,
-            0.14144625,
-            1.33963365,
-            -1.98302146,
-        ]
-
-        self.armHome=[0, -0.5592432, 0, 1.733180, 0, -0.8501557, 0]
-
-        self.gripperHome = [
-            -0.01863332,
-            -1.30851021,
-            -0.55159919,
-            1.58025131,
-            0.14144625,
-            1.33963365,
-            -1.98302146,
-        ]
         self.pos = [0.53, 0, 0.215]
         self.ori = [0, 3.14, np.pi / 2]
         self.tol = 1e-9
@@ -162,7 +141,7 @@ class InsertionEnv:
         # Insertion specific
 
         ###########################
-        
+
         self.init_robot()
 
     def get_id_by_name(self, names):
@@ -202,18 +181,6 @@ class InsertionEnv:
 
         return [jointNames[name] for name in names]
 
-    def reset_robot(self):
-        for j in range(len(self.armJoints)):
-            pb.resetJointState(self.robotID, self.armJoints[j], self.armHome[j])
-
-        pb.resetJointState(self.robotID, self.gripperBaseJoints[0], 0.7)
-        pb.resetJointState(self.robotID, self.gripperBaseJoints[1], -0.7)
-        self.gripper_open()
-
-        for _ in range(5):
-            color, depth = self.allsights.render()
-            self.allsights.updateGUI(color, depth)
-
     def init_robot(self):
         self.reset_robot()
 
@@ -222,6 +189,19 @@ class InsertionEnv:
         self.zin = pb.addUserDebugParameter("z", 0.0, 0.8, self.pos[2])
 
         self.go(self.pos, self.ori)
+
+    def reset_robot(self):
+        for j in range(len(self.armJoints)):
+            pb.resetJointState(self.robotID, self.armJoints[j], self.armHome[j])
+
+        pb.resetJointState(self.robotID, self.gripperBaseJoints[0], 0.7)
+        pb.resetJointState(self.robotID, self.gripperBaseJoints[1], -0.7)
+
+        self.gripper_open()
+
+        for _ in range(5):
+            color, depth = self.allsights.render()
+            self.allsights.updateGUI(color, depth)
 
     # Get the position and orientation of the UR5 end-effector
     def get_ee_pose(self):
@@ -237,17 +217,11 @@ class InsertionEnv:
         joint_angles = [_[0] for _ in pb.getJointStates(self.robotID, self.armJoints)]
         return joint_angles
 
-    # Get the gripper width gripper width
-    def get_gripper_width(self):
-        width = 2 * np.abs(pb.getJointState(self.robotID, self.gripperJoints[-1])[0])
-        return width
-
     # Go to the target pose
     def go(self, pos, ori=None, wait=False, gripForce=20):
 
         if ori is None:
             ori = self.ori
-
         ori_q = pb.getQuaternionFromEuler(ori)
 
         jointPose = pb.calculateInverseKinematics(self.robotID, self.eefID, pos, ori_q)
@@ -268,8 +242,9 @@ class InsertionEnv:
             targetPositions=jointPose,
             forces=maxForces,
             targetVelocities=np.zeros((7,)),
-            positionGains=np.ones((7,)) * 0.03,
-            velocityGains=np.ones((7,)))
+            # positionGains=np.ones((7,)) * 0.03,
+            # velocityGains=np.ones((7,)),
+        )
 
         self.pos = pos
         if ori is not None:
@@ -302,16 +277,16 @@ class InsertionEnv:
             #                    self.gripperJoints]
 
             for joint in self.gripperJoints:
-                # pb.setJointMotorControl2(bodyUniqueId=self.robotID,
-                #                          jointIndex=joint,
-                #                          controlMode=pb.VELOCITY_CONTROL,
-                #                          targetVelocity=0.2,
-                #                          force=gripForce)
+                pb.setJointMotorControl2(bodyUniqueId=self.robotID,
+                                         jointIndex=joint,
+                                         controlMode=pb.VELOCITY_CONTROL,
+                                         targetVelocity=0.2,
+                                         force=gripForce)
 
-                pb.setJointMotorControl2(targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.003,
-                                        bodyIndex=self.robotID,
-                                        jointIndex=joint,
-                                        controlMode=pb.POSITION_CONTROL, maxVelocity=1, force=10)
+                # pb.setJointMotorControl2(targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.001,
+                #                         bodyIndex=self.robotID,
+                #                         jointIndex=joint,
+                #                         controlMode=pb.POSITION_CONTROL, maxVelocity=1, force=10)
 
                 # pb.setJointMotorControl2(bodyIndex=self.robotID, jointIndex=joint,
                 #                         controlMode=pb.POSITION_CONTROL,
@@ -335,16 +310,12 @@ class InsertionEnv:
             pb.setJointMotorControl2(bodyUniqueId=self.robotID,
                                      jointIndex=joint,
                                      controlMode=pb.POSITION_CONTROL,
-                                     targetVelocity=0.1,
+                                     targetVelocity=0.2,
                                      targetPosition=pb.getJointState(self.robotID, joint).joint_position,
                                      force=gripForce)
 
         # color, depth = self.allsights.render()
         # self.allsights.updateGUI(color, depth)
-
-    # Gripper close
-    def gripper_close(self, width=None, max_torque=None):
-        pass
 
     # Gripper open
     def gripper_open(self):

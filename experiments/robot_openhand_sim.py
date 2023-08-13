@@ -14,58 +14,9 @@ import pybullet_data
 from robot_openhand_env import InsertionEnv
 import pybulletX as px
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+from utils.logger import Log
 # logger = logging.getLogger(__name__)
 
-class Log:
-    def __init__(self, dirName, id=0):
-        self.dirName = dirName
-        self.id = id
-        self.dataList = []
-        self.batch_size = 100
-        os.makedirs(dirName, exist_ok=True)
-
-    def save(
-            self,
-            tactileColorL,
-            tactileColorR,
-            tactileDepthL,
-            tactileDepthR,
-            gripForce,
-            normalForce,
-            label,
-    ):
-        data = {
-            "tactileColorL": tactileColorL,
-            "tactileColorR": tactileColorR,
-            "tactileDepthL": tactileDepthL,
-            "tactileDepthR": tactileDepthR,
-            "gripForce": gripForce,
-            "normalForce": normalForce,
-            "label": label,
-        }
-
-        self.dataList.append(data.copy())
-
-        if len(self.dataList) >= self.batch_size:
-            id_str = "{:07d}".format(self.id)
-            # os.makedirs(outputDir, exist_ok=True)
-            outputDir = os.path.join(self.dirName, id_str)
-            os.makedirs(outputDir, exist_ok=True)
-
-            # print(newData["tactileColorL"][0].shape)
-            newData = {k: [] for k in data.keys()}
-            for d in self.dataList:
-                for k in data.keys():
-                    newData[k].append(d[k])
-
-            for k in data.keys():
-                fn_k = "{}_{}.h5".format(id_str, k)
-                outputFn = os.path.join(outputDir, fn_k)
-                # dd.io.save(outputFn, newData[k])
-
-            self.dataList = []
-            self.id += 1
 
 def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
     """
@@ -99,8 +50,9 @@ def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
 log = Log("data/grasp")
 
 rob = InsertionEnv(robot_name='kuka')
-
-rob.go(rob.pos, wait=True)
+object_start_pos = rob.get_object_pose()
+pos = object_start_pos[0]
+rob.go(pos, wait=True)
 
 time_render = []
 time_vis = []
