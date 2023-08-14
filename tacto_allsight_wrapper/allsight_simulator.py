@@ -101,7 +101,7 @@ class Simulator:
         cfg : DictConfig
             allsight config dict -> allsight.yaml
         obj_id : str, optional
-            Define which size of sphere to use, by default '30'
+            Define which object
         """
 
         # Initialize World
@@ -119,9 +119,9 @@ class Simulator:
 
         # object body 
         # take the urdf path with the relevant id given
-        if obj_id in ['sphere3', 'sphere4', 'sphere5']:
+        if obj_id in ['sphere3', 'sphere4', 'sphere5','hexagon','ellipse','ellipse','square']:
             obj_urdf_path = f"../assets/objects/{obj_id}.urdf"
-        elif obj_id in ['cube', 'rect', 'ellipse']:
+        elif obj_id in ['cube', 'rect','triangle']:
             obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
         cfg.object.urdf_path = obj_urdf_path
@@ -171,9 +171,9 @@ class Simulator:
         # start the simulation thread
         self.start()
 
-        self.cyl_split = conf['cyl_split']
-        self.top_split = conf['top_split']
-        self.angle_split = conf['angle_split']
+        self.cyl_split = conf.cyl_split
+        self.top_split = conf.top_split
+        self.angle_split = conf.angle_split
 
         # Create constraints
         '''
@@ -196,10 +196,10 @@ class Simulator:
         )
 
         # create data logger object
-        self.logger = DataSimLogger(conf["save_prefix"],
-                                    conf['leds'],
-                                    conf['indenter'],
-                                    save=conf['save'],
+        self.logger = DataSimLogger(conf.save_prefix,
+                                    conf.leds,
+                                    conf.indenter,
+                                    save=conf.save,
                                     save_depth=False)
 
         # take ref frame
@@ -207,20 +207,20 @@ class Simulator:
 
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
 
-        if conf['save']:
+        if conf.save:
             ref_frame[0] = cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB)
             if not cv2.imwrite(ref_img_color_path, ref_frame[0]):
                 raise Exception("Could not write image")
 
         frame_count = 0
 
-        Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
+        Q = np.linspace(0, 2 * np.pi, conf.angle_split)
 
         K1 = np.linspace(0.07, 0.1, self.cyl_split)
-        K2 = np.linspace(0.06, 0.09, self.top_split)
+        K2 = np.linspace(0.05, 0.075, self.top_split)
 
         f_start_pi_10 = 80
-        f_end_pi_10 = 100
+        f_end_pi_10 = 90
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
@@ -234,7 +234,7 @@ class Simulator:
             self.body.set_base_pose(position=current_pos, orientation=new_quat)
             pyb.stepSimulation()
 
-            for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
+            for i in range(conf.start_from, self.cyl_split + self.top_split, 1):
 
                 if i == self.cyl_split: continue
 
@@ -293,12 +293,12 @@ class Simulator:
                         color_img = color[0]
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
-                        self.logger.append(conf["save_prefix"], i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                        self.logger.append(conf.save_prefix, i, np.interp(q, [0, 2 * np.pi], [0, 1]),
                                            color_img, depth_img, pose, rot, force, frame_count)
 
                         frame_count += 1
 
-            if conf['save']: self.logger.save_batch_images()
+            if conf.save : self.logger.save_batch_images()
 
         self.logger.save_data_dict()
 

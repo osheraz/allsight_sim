@@ -262,10 +262,10 @@ class Sensor(tSensor):
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)
 
-            mask = circle_mask()
+            mask = circle_mask(size=(480,480))
             color[0][mask == 0] = 0
 
-                
+
             colors += color
             depths += depth
             

@@ -31,7 +31,7 @@ def main(cfg):
 
     simulator = Simulator(cfg=cfg)
     
-    simulator.create_env(cfg.allsight, cfg.summary.indenter)
+    simulator.create_env(cfg.allsight, obj_id=cfg.summary.indenter)
     simulator.run_sim()
 
 

@@ -14,7 +14,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="textured_sphere_smooth.obj" scale="0.004 0.004 0.002"/>/>
+        <mesh filename="ellipse.obj" scale="1 1 1"/>
       </geometry>
       <material name="white">
         <color rgba="1 1 1 1"/>
@@ -23,7 +23,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-	 <sphere radius="0.004"/>
+        <mesh filename="ellipse.obj" scale="1 1 1"/>
       </geometry>
     </collision>
   </link>

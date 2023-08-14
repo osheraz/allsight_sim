@@ -14,7 +14,7 @@ show_detect: False # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
+  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
   leds: white
 
 # used only for collect_data
@@ -22,11 +22,12 @@ summary:
   start_from: 30
   up_to: 30
   gel: clear
-  angle_split: 250
+  angle_split: 50
   cyl_split: 50
-  top_split: 5
+  top_split: 6
   save: True
-  save_prefix: id3_force1_deformation0007
+  save_prefix: white_id3
+
 
 sim2real:
   enable: False

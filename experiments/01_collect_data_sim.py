@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 
 # Load the config YAML file from experiments/conf/allsight.yaml
-@hydra.main(config_path="conf", config_name="experiment")
+@hydra.main(config_path="conf", config_name="experiment_collect_data")
 def main(cfg):
     """Main program
     Args:
@@ -42,16 +42,14 @@ def main(cfg):
     # start script from the path of the paraent dir
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    summary = OmegaConf.to_container(cfg.summary)
-
     # create simulator object
     simulator = Simulator(cfg=cfg)
 
     # create env
-    simulator.create_env(cfg.allsight, obj_id=summary["indenter"])
+    simulator.create_env(cfg.allsight, obj_id=cfg.summary.indenter)
 
     # collect data
-    simulator.collect_data(summary)
+    simulator.collect_data(conf=cfg.summary)
 
 
 if __name__ == "__main__":

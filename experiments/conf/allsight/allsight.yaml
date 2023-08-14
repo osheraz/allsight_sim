@@ -6,8 +6,8 @@
 #     dir: .././
 
 tacto:
-  width: 224
-  height: 224
+  width: 480 # 224
+  height: 480 # 224
   visualize_gui: True
 
 allsight:

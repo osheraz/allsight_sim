@@ -14,11 +14,11 @@ show_detect: False # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: demo
-  indenter: cube # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse
+  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle | hexagon | square
   leds: rrrgggbbb # white | rrrgggbbb | rgbrgbrgb
 
 sim2real:
-  enable: True
+  enable: False
   model_G: ../experiments/models/GAN/180_net_G_B.pth # path for the pth model of the generator
   model_R: # path for the pth model of the regressor
 
