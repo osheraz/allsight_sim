@@ -30,7 +30,6 @@ OmegaConf.register_new_resolver("path", lambda: PATH)
 
 log = logging.getLogger(__name__)
 
-
 # Load the config YAML file from experiments/conf/allsight.yaml
 @hydra.main(config_path="conf", config_name="experiment_collect_data")
 def main(cfg):

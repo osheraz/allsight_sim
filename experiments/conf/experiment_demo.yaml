@@ -18,8 +18,8 @@ summary:
   leds: rrrgggbbb # white | rrrgggbbb | rgbrgbrgb
 
 sim2real:
-  enable: False
-  model_G: ../experiments/models/GAN/180_net_G_B.pth # path for the pth model of the generator
+  enable: True
+  model_G: ../experiments/models/GAN/170_net_G_B.pth # path for the pth model of the generator
   model_R: # path for the pth model of the regressor
 
 

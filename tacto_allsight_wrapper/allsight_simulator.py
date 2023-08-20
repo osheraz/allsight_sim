@@ -61,8 +61,7 @@ class Simulator:
         self.allsight = allsight_wrapper.Sensor(
             **cfg.allsight.tacto, **{"config_path": conf_path},
             background=bg if cfg.with_bg else None,
-            show_depth=cfg.show_depth,
-            show_cv_detect=cfg.show_detect 
+            show_depth=cfg.show_depth
         )
 
         self.base_h = cfg.allsight.sensor_dims.base_h
@@ -90,6 +89,8 @@ class Simulator:
             
             self.model_G.load_state_dict(torch.load(cfg.sim2real.model_G))
             self.model_G.eval()
+        
+        self.show_contact_px = cfg.show_detect
         
 
     # visual creator function
@@ -153,16 +154,20 @@ class Simulator:
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
         
-        
         while True:
             colors_gan = []
+            contact_px = None
             color, depth = self.allsight.render()
             if self.is_sim2real:
                 for i in range(len(color)):
                     color_tensor = self.transform(color[i]).unsqueeze(0)
                     colors_gan.append(tensor2im(self.model_G(color_tensor)))
-            
-            self.allsight.updateGUI(color,depth,colors_gan=colors_gan)
+            if self.show_contact_px:
+                contact_px = self.allsight.detect_contact(depth)
+            self.allsight.updateGUI(color,
+                                    depth,
+                                    colors_gan=colors_gan,
+                                    contact_px=contact_px)
 
         self.t.stop()
 
@@ -200,7 +205,7 @@ class Simulator:
                                     conf.leds,
                                     conf.indenter,
                                     save=conf.save,
-                                    save_depth=False)
+                                    save_depth=conf.save_depth)
 
         # take ref frame
         ref_frame, _ = self.allsight.render()
@@ -219,8 +224,8 @@ class Simulator:
         K1 = np.linspace(0.07, 0.1, self.cyl_split)
         K2 = np.linspace(0.05, 0.075, self.top_split)
 
-        f_start_pi_10 = 80
-        f_end_pi_10 = 90
+        f_start_pi_10 = 91
+        f_end_pi_10 = 97
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
@@ -247,9 +252,25 @@ class Simulator:
                 pyb.stepSimulation()
 
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
-
+                colors_gan = []
                 color, depth = self.allsight.render()
-                self.allsight.updateGUI(color, depth)
+                
+                
+                ## depth, contact_px = cv_obj_detect(depth)
+                # self.allsight.updateGUI(color, depth)
+                if self.is_sim2real:
+                    for i in range(len(color)):
+                        color_tensor = self.transform(color[i]).unsqueeze(0)
+                        colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+                
+                if self.show_contact_px:
+                    contact_px = self.allsight.detect_contact(depth)
+                self.allsight.updateGUI(color,
+                                        depth,
+                                        colors_gan=colors_gan,
+                                        contact_px=contact_px)
+                
                 time.sleep(0.01)
 
                 for f in range(f_start_pi_10, f_end_pi_10):
@@ -264,8 +285,20 @@ class Simulator:
                                          jointChildFrameOrientation=push_point_end[1],
                                          maxForce=force)
 
+                    colors_gan = []
                     color, depth = self.allsight.render()
-                    self.allsight.updateGUI(color, depth)
+                    # self.allsight.updateGUI(color, depth)
+                    if self.is_sim2real:
+                        for i in range(len(color)):
+                            color_tensor = self.transform(color[i]).unsqueeze(0)
+                            colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+                    if self.show_contact_px:
+                        contact_px = self.allsight.detect_contact(depth)
+                    self.allsight.updateGUI(color,
+                                            depth,
+                                            colors_gan=colors_gan,
+                                            contact_px=contact_px)
                     pyb.stepSimulation()
                     time.sleep(0.05)
 
@@ -294,7 +327,7 @@ class Simulator:
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
                         self.logger.append(conf.save_prefix, i, np.interp(q, [0, 2 * np.pi], [0, 1]),
-                                           color_img, depth_img, pose, rot, force, frame_count)
+                                           color_img, depth_img, pose, rot, force, contact_px, frame_count)
 
                         frame_count += 1
 
@@ -379,3 +412,5 @@ class Simulator:
             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
+
+    
