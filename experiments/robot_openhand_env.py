@@ -70,7 +70,7 @@ class InsertionEnv:
         if robot_name == 'sawyer':
             robotURDF = "../assets/robots/sawyer_openhand.urdf"
             self.armNames = ["right_j" + str(i) for i in range(7)]
-            self.armHome = [-0.01863332, -1.30851021, -0.55159919, 1.58025131, 0.14144625, 1.33963365, -1.98302146, ]
+            self.armHome = [-0.0186, -1.308, -0.5515, 1.580, 0.1414, 1.3396, -1.983]
             ee_name = 'right_hand'
         elif robot_name == 'panda':
             robotURDF = "../assets/robots/panda_openhand.urdf"
@@ -80,7 +80,7 @@ class InsertionEnv:
             robotURDF = "../assets/robots/iiwa14_openhand.urdf"
             ee_name = 'iiwa_gripper_tip_joint'
             self.armNames = ["iiwa_joint_" + str(i) for i in range(1, 8)]
-            self.armHome = [0, -0.5592432, 0, 1.733180, 0, -0.8501557, 0]
+            self.armHome = [1.080, 0.7178, 1.7055, 2.068, 0.8235, -1.10589, 0.8079]
 
         self.robot = px.Body(robotURDF, use_fixed_base=True, flags=pb.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
@@ -191,6 +191,7 @@ class InsertionEnv:
         self.go(self.pos, self.ori)
 
     def reset_robot(self):
+
         for j in range(len(self.armJoints)):
             pb.resetJointState(self.robotID, self.armJoints[j], self.armHome[j])
 
@@ -218,32 +219,41 @@ class InsertionEnv:
         return joint_angles
 
     # Go to the target pose
-    def go(self, pos, ori=None, wait=False, gripForce=20):
+    def go(self, pos, ori=None, ori_is_quat=False, wait=False):
 
+        # keep the same ori if not specified
         if ori is None:
             ori = self.ori
-        ori_q = pb.getQuaternionFromEuler(ori)
 
-        jointPose = pb.calculateInverseKinematics(self.robotID, self.eefID, pos, ori_q)
-        jointPose = np.array(jointPose)
+        if ori_is_quat:
+            ori_q = ori
+            ori = pb.getEulerFromQuaternion(ori)
+        else:
+            ori_q = pb.getQuaternionFromEuler(ori)
 
-        self.cur_joint_pose = jointPose.copy()
+        joint_pose = pb.calculateInverseKinematics(self.robotID,
+                                                   self.eefID,
+                                                   pos,
+                                                   ori_q,
+                                                   residualThreshold=0.001,
+                                                   maxNumIterations=100)
 
-        maxForces = np.ones(len(jointPose)) * 200
+        joint_pose = np.array(joint_pose)
+        max_force = np.ones(len(joint_pose)) * 200
 
         # Select the relevant joints for arm
-        jointPose = jointPose[self.armControlID]
-        maxForces = maxForces[self.armControlID]
+        joint_pose = joint_pose[self.armControlID]
+        max_force = max_force[self.armControlID]
 
         pb.setJointMotorControlArray(
             self.robotID,
             tuple(self.armJoints),
             pb.POSITION_CONTROL,
-            targetPositions=jointPose,
-            forces=maxForces,
+            targetPositions=joint_pose,
+            forces=max_force,
             targetVelocities=np.zeros((7,)),
-            # positionGains=np.ones((7,)) * 0.03,
-            # velocityGains=np.ones((7,)),
+            positionGains=np.ones((7,)) * 0.03,
+            velocityGains=np.ones((7,)),
         )
 
         self.pos = pos
@@ -268,7 +278,7 @@ class InsertionEnv:
     # Go to the target pose
     def grasp(self, gripForce=100):
 
-        finish_time = time() + 5.0
+        finish_time = time() + 2.0
         has_contact = 0
 
         while time() < finish_time and (has_contact < 3):

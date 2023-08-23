@@ -24,7 +24,8 @@ sensor_dims:
 
 object:
   urdf_path: "../assets/objects/sphere3.urdf"
-  base_position: [0, 0, 0.06]
+  base_position: [0, 0, 0.1]
+  base_orientation: [0.707,0, 0, 0]
   global_scaling: 1
   use_fixed_base: False
 

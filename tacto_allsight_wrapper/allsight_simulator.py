@@ -101,18 +101,20 @@ class Simulator:
         elif obj_id in ['cube', 'rect', 'ellipse']:
             obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
+        obj_urdf_path = f"../assets/objects/sphere_press.urdf"
+
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
         # set start pose
-        self.obj.set_base_pose([0, 0, 0.056])
+        # self.obj.set_base_pose([0, 0, 0.056])
         self.allsight.add_body(self.obj)
 
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
         # # Create control panel to control the 6DoF pose of the object
-        # self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
-        # self.panel.start()
+        self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
+        self.panel.start()
 
     def start(self):
         '''Start the simulation thread

@@ -49,16 +49,17 @@ def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
 
 log = Log("data/grasp")
 
-rob = InsertionEnv(robot_name='kuka')
+rob = InsertionEnv(robot_name='kuka', allsight_display=True)
 object_start_pos = rob.get_object_pose()
 pos = object_start_pos[0]
-rob.go(pos, wait=True)
+
+grasp_ori = (0.7120052640594666, -0.7021243464589736, 0.005861858779661195, -0.0059619353246853635)
+rob.go(pos=pos, ori=grasp_ori, ori_is_quat=True, wait=True)
 
 time_render = []
 time_vis = []
 
-dz = 0.005
-pos = [0.50, 0, 0.19]
+dz = 0.01
 
 t = px.utils.SimulationThread(real_time_factor=1.0)
 t.start()
@@ -76,9 +77,10 @@ t = 0
 while True:
     t += 1
     print(t)
+
     if t == 5:
         # Reaching
-        rob.go(pos)
+        rob.go(pos, wait=True)
     elif t == 10:
         # Grasping
         rob.grasp(gripForce=gripForce)
@@ -97,14 +99,13 @@ while True:
         # print("normal force", normalForce, "lateral force", lateralForce)
 
         objPos0, objOri0 = rob.get_object_pose()
-    elif 10 < t <= 15:
+    elif 10 < t < 15:
         # Lift
         pos[-1] += dz
         rob.go(pos)
-    elif t > 30:
+    elif t == 15:
         # Save the data
         objPos, objOri = rob.get_object_pose()
-
 
         if objPos[2] - objPos0[2] < 60 * dz * 0.8:
             # Fail
@@ -114,16 +115,16 @@ while True:
             label = 1
         # print("Success" if label == 1 else "Fail", end=" ")
 
-        log.save(
-            tactileColorL,
-            tactileColorR,
-            tactileDepthL,
-            tactileDepthR,
-            gripForce,
-            normalForce,
-            label,
-        )
-        print("\rsample {}".format(log.id * log.batch_size + len(log.dataList)), end="")
+        # log.save(
+        #     tactileColorL,
+        #     tactileColorR,
+        #     tactileDepthL,
+        #     tactileDepthR,
+        #     gripForce,
+        #     normalForce,
+        #     label,
+        # )
+        # print("\rsample {}".format(log.id * log.batch_size + len(log.dataList)), end="")
 
         # print("\rsample {}".format(log.id), end="")
 
@@ -136,6 +137,7 @@ while True:
         # rob.go(pos, width=0.11)
         # for i in range(100):
         #     pb.stepSimulation()
+
         rob.reset_robot()
 
         objRestartPos = [
@@ -150,7 +152,7 @@ while True:
         pos = [
             objRestartPos[0] + np.random.uniform(-0.02, 0.02),
             objRestartPos[1] + np.random.uniform(-0.02, 0.02),
-            objRestartPos[2] * (1 + np.random.random() * 0.5) + 0.14,
+            objRestartPos[2] * (1 + np.random.random() * 0.5),
         ]
         ori = [0, np.pi, 2 * np.pi * np.random.random()]
         # pos = [0.50, 0, 0.205]
@@ -158,14 +160,13 @@ while True:
 
         gripForce = 5 + np.random.random() * 15
 
-        rob.go(pos + np.array([0, 0, 0.1]), ori=ori)
+        rob.go(pos + np.array([0, 0, 0.0]), ori=ori)
         pb.resetBasePositionAndOrientation(rob.objID, objRestartPos, objRestartOrientation)
         # for i in range(100):
         #     pb.stepSimulation()
         pb.stepSimulation()
 
     pb.stepSimulation()
-
     st = time.time()
     # color, depth = rob.allsights.render()
 
