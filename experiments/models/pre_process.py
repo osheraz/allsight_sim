@@ -36,6 +36,7 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
 
 
 
+
 def __crop(img, pos, size):
     ow, oh = img.size
     x1, y1 = pos

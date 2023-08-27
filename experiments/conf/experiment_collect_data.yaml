@@ -16,18 +16,22 @@ summary:
   name: collect_data
   indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
   leds: white # white | rrrgggbbb | rgbrgbrgb
+  sensor_id: 12 # for white: 12 - 19  
+              # for rrrgggbbb: 3
+              # for rgbrgbrgb: 0 
 
 # used only for collect_data
   method: press
   start_from: 25
   up_to: 30
   gel: clear
-  angle_split: 1
+  angle_split: 14
+  start_random_angle: True
   cyl_split: 38
   top_split: 4
   save: True
   save_depth: True
-  save_prefix: sensor12_sphere3_no_noise
+  save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 
 sim2real:
   enable: False

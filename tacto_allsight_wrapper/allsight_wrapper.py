@@ -345,7 +345,7 @@ class Sensor(tSensor):
             if contact_px is not None:
                 [x,y,r] = contact_px
                 # Draw the circle on the original image
-                cv2.circle(color, (x, y), int(r*1.5), (0, 255, 0), 4)
+                cv2.circle(color, (x, y), int(r*2.5), (0, 255, 0), 4)
                 # Draw a small circle at the center of the detected circle
                 cv2.circle(color, (x, y), 2, (0, 0, 255), 3)
             

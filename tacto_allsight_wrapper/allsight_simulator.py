@@ -54,7 +54,8 @@ class Simulator:
 
         # bg image
         leds = cfg.summary.leds
-        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}.jpg"))
+        sensor_id = cfg.summary.sensor_id
+        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}{sensor_id}.jpg"))
         conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
@@ -92,6 +93,7 @@ class Simulator:
         
         self.show_contact_px = cfg.show_detect
         
+        self.start_random_angle = cfg.summary.start_random_angle
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -153,7 +155,8 @@ class Simulator:
         # show panel
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
-        
+
+
         while True:
             colors_gan = []
             contact_px = None
@@ -219,13 +222,16 @@ class Simulator:
 
         frame_count = 0
 
-        Q = np.linspace(0, 2 * np.pi, conf.angle_split)
+        
+        random_angle = np.random.random() if self.start_random_angle else 0
+        
+        Q = np.linspace(0+random_angle, 2 * np.pi + random_angle, conf.angle_split)
 
         K1 = np.linspace(0.07, 0.1, self.cyl_split)
         K2 = np.linspace(0.05, 0.075, self.top_split)
 
-        f_start_pi_10 = 91
-        f_end_pi_10 = 97
+        f_start_pi_10 = 89
+        f_end_pi_10 = 101
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
@@ -273,7 +279,7 @@ class Simulator:
                 
                 time.sleep(0.01)
 
-                for f in range(f_start_pi_10, f_end_pi_10):
+                for f in range(f_start_pi_10, f_end_pi_10,2):
 
                     if i <= self.cyl_split:
                         force = f * K1[i]
