@@ -27,8 +27,8 @@ def main(cfg):
     import sys
     sys.path.insert(0, PATH)
     import cv2
-    bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_rrrgggbbb.jpg"))
-    conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_rrrgggbbb.yml")
+    bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_white15.jpg"))
+    conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_white.yml")
 
     allsights = allsight_wrapper.Sensor(
             **cfg.tacto, **{"config_path": conf_path},

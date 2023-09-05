@@ -6,12 +6,10 @@
 import logging
 import os
 import time
-
 # import deepdish as dd
 import numpy as np
 import pybullet as pb
-import pybullet_data
-from robot_openhand_env import InsertionEnv
+from robot_envs.robot_openhand_env import InsertionEnv
 import pybulletX as px
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from utils.logger import Log
@@ -47,7 +45,7 @@ def get_forces(bodyA=None, bodyB=None, linkIndexA=None, linkIndexB=None):
     return totalNormalForce, totalLateralFrictionForce
 
 
-log = Log("data/grasp")
+# log = Log("data/grasp")
 
 rob = InsertionEnv(robot_name='kuka', allsight_display=True)
 object_start_pos = rob.get_object_pose()
@@ -59,32 +57,32 @@ rob.go(pos=pos, ori=grasp_ori, ori_is_quat=True, wait=True)
 time_render = []
 time_vis = []
 
-dz = 0.01
+dz = 0.02
 
 t = px.utils.SimulationThread(real_time_factor=1.0)
 t.start()
 
 # t=0
-gripForce = 20
+gripForce = 9
 
 normalForceList0 = []
 normalForceList1 = []
 
 print("\n")
+
 t = 0
 
-# rob.go(pos=pos, ori=[0,0,0])
 while True:
     t += 1
-    print(t)
+    # print(t)
 
-    if t == 5:
+    if t == 2:
         # Reaching
         rob.go(pos, wait=True)
-    elif t == 10:
+    elif t == 3:
         # Grasping
         rob.grasp(gripForce=gripForce)
-    elif t == 11:
+    elif t == 4:
         # Record sensor states
         tactileColor, tactileDepth = rob.allsights.render()
         tactileColorL, tactileColorR = tactileColor[0], tactileColor[1]
@@ -99,11 +97,11 @@ while True:
         # print("normal force", normalForce, "lateral force", lateralForce)
 
         objPos0, objOri0 = rob.get_object_pose()
-    elif 10 < t < 15:
+    elif 5 < t < 10:
         # Lift
         pos[-1] += dz
         rob.go(pos)
-    elif t == 15:
+    elif t == 10:
         # Save the data
         objPos, objOri = rob.get_object_pose()
 
@@ -128,16 +126,11 @@ while True:
 
         # print("\rsample {}".format(log.id), end="")
 
-        if log.id > 2000:
-            break
+        # if log.id > 2000:
+        #     break
 
         # Reset
         t = 0
-
-        # rob.go(pos, width=0.11)
-        # for i in range(100):
-        #     pb.stepSimulation()
-
         rob.reset_robot()
 
         objRestartPos = [
@@ -161,6 +154,7 @@ while True:
         gripForce = 5 + np.random.random() * 15
 
         rob.go(pos + np.array([0, 0, 0.0]), ori=ori)
+
         pb.resetBasePositionAndOrientation(rob.objID, objRestartPos, objRestartOrientation)
         # for i in range(100):
         #     pb.stepSimulation()

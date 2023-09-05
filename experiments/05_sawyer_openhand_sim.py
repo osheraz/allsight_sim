@@ -12,7 +12,7 @@ import numpy as np
 import pybullet as pb
 import pybullet_data
 import tacto  # import TACTO
-from robot import Robot
+from robot_envs.robot import Robot
 import pybulletX as px
 
 logger = logging.getLogger(__name__)

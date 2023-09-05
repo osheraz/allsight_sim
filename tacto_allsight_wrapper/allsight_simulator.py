@@ -258,6 +258,7 @@ class Simulator:
 
                 ## depth, contact_px = cv_obj_detect(depth)
                 # self.allsight.updateGUI(color, depth)
+
                 if self.is_sim2real:
                     for i in range(len(color)):
                         color_tensor = self.transform(color[i]).unsqueeze(0)
@@ -265,6 +266,7 @@ class Simulator:
 
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
+
                 self.allsight.updateGUI(color,
                                         depth,
                                         colors_gan=colors_gan,

@@ -37,11 +37,12 @@ class InsertionEnv:
         # Init finger tips
         rel_path = os.path.join(os.path.dirname(__file__), "../")
         sys.path.insert(0, rel_path)
-        bg = cv2.imread(os.path.join(rel_path, f"experiments/conf/ref/ref_frame_rrrgggbbb.jpg"))
-        conf_path = os.path.join(rel_path, f"experiments/conf/sensor/config_allsight_rrrgggbbb.yml")
+        bg = cv2.imread(os.path.join(rel_path, f"conf/ref/ref_frame_white15.jpg"))
+        conf_path = os.path.join(rel_path, f"conf/sensor/config_allsight_white.yml")
 
         self.allsights = allsight_wrapper.Sensor(
-            width=224, height=224, visualize_gui=allsight_display, **{"config_path": conf_path},
+            width=224, height=224,
+            visualize_gui=allsight_display, **{"config_path": conf_path},
             background=bg if True else None
         )
 
@@ -85,7 +86,7 @@ class InsertionEnv:
         self.robot = px.Body(robotURDF, use_fixed_base=True, flags=pb.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
         # Define scene
-        urdfObj = "../assets/objects/rect_small.urdf"
+        urdfObj = "../assets/objects/rect_grasp.urdf"
         if obj_start_ori is None:
             obj_start_ori = [0, 0, np.pi / 2]
         if obj_start_pos is None:
@@ -104,45 +105,35 @@ class InsertionEnv:
         self.armControlID = self.get_control_id_by_name(self.armNames)
 
         # Get link/joint ID for gripper
-        gripperNames = [
-            "finger_1_1_to_finger_1_2",
-            "finger_1_2_to_finger_1_3",
-            "finger_2_1_to_finger_2_2",
-            "finger_2_2_to_finger_2_3",
-            "base_to_finger_3_2",
-            "finger_3_2_to_finger_3_3"
-        ]
-        gripperBases = ['base_to_finger_1_1',
-                        'base_to_finger_2_1']
 
-        allsight_joints = ["finger_3_2_to_finger_3_3",
-                           "finger_2_2_to_finger_2_3",
-                           "finger_1_2_to_finger_1_3"]
+        self.proximal_joints = ['finger_1_1_to_finger_1_2', 'base_to_finger_3_2', 'finger_2_1_to_finger_2_2']
+        self.distal_joints = ["finger_1_2_to_finger_1_3", "finger_2_2_to_finger_2_3", "finger_3_2_to_finger_3_3"]
 
-        self.gripperJoints = self.get_id_by_name(gripperNames)
-        self.gripperControlID = self.get_control_id_by_name(gripperNames)
+        gripper_bases = ['base_to_finger_1_1', 'base_to_finger_2_1']
 
-        self.gripperBaseJoints = self.get_id_by_name(gripperBases)
-        self.gripperBaseControlID = self.get_control_id_by_name(gripperBases)
+        allsight_joints = ["finger_3_2_to_finger_3_3", "finger_2_2_to_finger_2_3", "finger_1_2_to_finger_1_3"]
+
+        self.proximalJointsID = self.get_id_by_name(self.proximal_joints)
+        self.distalJointsID = self.get_id_by_name(self.distal_joints)
+        self.gripperJointsID = self.get_id_by_name(self.proximal_joints + self.distal_joints)
+        # self.gripperControlID = self.get_control_id_by_name(self.proximal_joints + self.distal_joints)
+
+        self.gripperBaseJointsID = self.get_id_by_name(gripper_bases)
+        # self.gripperBaseControlID = self.get_control_id_by_name(gripper_bases)
 
         # Get ID for end effector
         self.eefID = self.get_id_by_name([ee_name])[0]
 
-        self.pos = [0.53, 0, 0.215]
-        self.ori = [0, 3.14, np.pi / 2]
+        self.cur_pose = [0.53, 0, 0.215]
+        self.cur_ori = [0, 3.14, np.pi / 2]
         self.tol = 1e-9
 
-        # add object to allsight
+        # add object to tacto sim
         self.allsights.add_body(self.obj)
         self.sensorLinks = self.get_id_by_name(allsight_joints)
         self.allsights.add_camera(self.robotID, self.sensorLinks)
 
-        ###########################
-        # Insertion specific
-
-        ###########################
-
-        self.init_robot()
+        self.reset_robot()
 
     def get_id_by_name(self, names):
         """
@@ -181,30 +172,25 @@ class InsertionEnv:
 
         return [jointNames[name] for name in names]
 
-    def init_robot(self):
-        self.reset_robot()
-
-        self.xin = pb.addUserDebugParameter("x", 0.3, 0.85, self.pos[0])
-        self.yin = pb.addUserDebugParameter("y", -0.85, 0.85, self.pos[1])
-        self.zin = pb.addUserDebugParameter("z", 0.0, 0.8, self.pos[2])
-
-        self.go(self.pos, self.ori)
-
     def reset_robot(self):
 
+        # init robot arm
         for j in range(len(self.armJoints)):
             pb.resetJointState(self.robotID, self.armJoints[j], self.armHome[j])
 
-        pb.resetJointState(self.robotID, self.gripperBaseJoints[0], 0.7)
-        pb.resetJointState(self.robotID, self.gripperBaseJoints[1], -0.7)
+        # init finger rotation angle
+        pb.resetJointState(self.robotID, self.gripperBaseJointsID[0], 0.7)
+        pb.resetJointState(self.robotID, self.gripperBaseJointsID[1], -0.7)
 
+        # init the rest of the gripper joints
         self.gripper_open()
 
+        # update tactile images
         for _ in range(5):
             color, depth = self.allsights.render()
             self.allsights.updateGUI(color, depth)
 
-    # Get the position and orientation of the UR5 end-effector
+    # Get the position and orientation of the robot end-effector
     def get_ee_pose(self):
         res = pb.getLinkState(self.robotID, self.eefID)
 
@@ -213,17 +199,61 @@ class InsertionEnv:
 
         return (world_positions, world_orientations)
 
-    # Get the joint angles (6 ur5 joints)
+    # Get the joint angles 
     def get_joint_angles(self):
         joint_angles = [_[0] for _ in pb.getJointStates(self.robotID, self.armJoints)]
         return joint_angles
+
+    def get_gripper_angles(self):
+        joint_angles = [_[0] for _ in pb.getJointStates(self.robotID, self.gripperJointsID)]
+        return joint_angles
+
+    # Gripper open
+    def gripper_open(self, wait=True):
+
+        # pb.setJointMotorControlArray(
+        #     self.robotID,
+        #     self.gripperJointsID,
+        #     pb.POSITION_CONTROL,
+        #     targetPositions=np.zeros(len(self.gripperJointsID)).tolist(),
+        # )
+
+        for i in range(len(self.gripperJointsID)):
+
+            pb.setJointMotorControl2(targetPosition=0.,
+                                     bodyIndex=self.robotID,
+                                     jointIndex=self.gripperJointsID[i],
+                                     controlMode=pb.POSITION_CONTROL,
+                                     maxVelocity=0.25,
+                                     force=10)
+
+        if wait:
+            last_err = 1e6
+            while True:
+                pb.stepSimulation()
+                gripper_angles = self.get_gripper_angles()
+                err = np.linalg.norm(np.array(gripper_angles))
+                diff_err = last_err - err
+                last_err = err
+                if np.abs(diff_err) < self.tol:
+                    break
+
+
+    def get_object_pose(self):
+        res = pb.getBasePositionAndOrientation(self.objID)
+        world_positions = res[0]
+        world_orientations = res[1]
+        world_positions = np.array(world_positions)
+        world_orientations = np.array(world_orientations)
+
+        return (world_positions, world_orientations)
 
     # Go to the target pose
     def go(self, pos, ori=None, ori_is_quat=False, wait=False):
 
         # keep the same ori if not specified
         if ori is None:
-            ori = self.ori
+            ori = self.cur_ori
 
         if ori_is_quat:
             ori_q = ori
@@ -245,21 +275,36 @@ class InsertionEnv:
         joint_pose = joint_pose[self.armControlID]
         max_force = max_force[self.armControlID]
 
-        pb.setJointMotorControlArray(
-            self.robotID,
-            tuple(self.armJoints),
-            pb.POSITION_CONTROL,
-            targetPositions=joint_pose,
-            forces=max_force,
-            targetVelocities=np.zeros((7,)),
-            positionGains=np.ones((7,)) * 0.03,
-            velocityGains=np.ones((7,)),
-        )
+        # Move the arm to the desired angle using position control
+        # pb.setJointMotorControlArray(
+        #     self.robotID,
+        #     tuple(self.armJoints),
+        #     pb.POSITION_CONTROL,
+        #     targetPositions=joint_pose,
+        #     forces=max_force,
+        #     targetVelocities=np.zeros((7,)),
+        #     positionGains=np.ones((7,)) * 0.03,
+        #     velocityGains=np.ones((7,)),
+        # )
+        self.MAX_VELOCITY   = 0.25
+        self.MAX_FORCE      = 150
 
-        self.pos = pos
+        for i in range(len(joint_pose)):
+
+            pb.setJointMotorControl2(targetPosition=joint_pose[i],
+                                     bodyIndex=self.robotID,
+                                     jointIndex=self.armJoints[i],
+                                     controlMode=pb.POSITION_CONTROL,
+                                     maxVelocity=self.MAX_VELOCITY,
+                                     force=self.MAX_FORCE)
+
+
+        # update current pos and orientation
+        self.cur_pose = pos
         if ori is not None:
-            self.ori = ori
+            self.cur_ori = ori
 
+        # make sure we get there
         if wait:
             last_err = 1e6
             while True:
@@ -275,48 +320,38 @@ class InsertionEnv:
                 if np.abs(diff_err) < self.tol:
                     break
 
-    # Go to the target pose
     def grasp(self, gripForce=100):
 
-        finish_time = time() + 2.0
+        max_grasp_time = time() + 2.0
         has_contact = 0
 
-        while time() < finish_time and (has_contact < 3):
+        while time() < max_grasp_time and (has_contact < 3):
             pb.stepSimulation()
             # joint_info_list = [pb.getJointState(self.robotID, joint_index).joint_position + 0.001 for joint_index in
-            #                    self.gripperJoints]
+            #                    self.gripperJointsID]
 
-            for joint in self.gripperJoints:
+            for joint in self.proximalJointsID:
+
+                vel = 0.2
                 pb.setJointMotorControl2(bodyUniqueId=self.robotID,
                                          jointIndex=joint,
                                          controlMode=pb.VELOCITY_CONTROL,
-                                         targetVelocity=0.2,
+                                         targetVelocity=vel,
                                          force=gripForce)
 
-                # pb.setJointMotorControl2(targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.001,
-                #                         bodyIndex=self.robotID,
-                #                         jointIndex=joint,
-                #                         controlMode=pb.POSITION_CONTROL, maxVelocity=1, force=10)
+            for joint in self.distalJointsID:
 
-                # pb.setJointMotorControl2(bodyIndex=self.robotID, jointIndex=joint,
-                #                         controlMode=pb.POSITION_CONTROL,
-                #                         targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.001,
-                #                         # positionGain=0.5, velocityGain=0.5, force=1.5,
-                #                         # force=1,
-                #                         force=gripForce)
-
-                # pb.setJointMotorControl2(bodyIndex=self.robotID,
-                #                           jointIndex=joint,
-                #                           controlMode=pb.POSITION_CONTROL,
-                #                           targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.03,
-                #                           targetVelocity=0,
-                #                           force=50,
-                #                           positionGain= 0.03,
-                #                           velocityGain=1)
+                vel = 0.05
+                pb.setJointMotorControl2(bodyUniqueId=self.robotID,
+                                         jointIndex=joint,
+                                         controlMode=pb.VELOCITY_CONTROL,
+                                         targetVelocity=vel,
+                                         force=gripForce)
 
             has_contact = len(pb.getContactPoints(self.robotID, self.objID))
 
-        for joint in self.gripperJoints:
+        for joint in self.gripperJointsID:
+
             pb.setJointMotorControl2(bodyUniqueId=self.robotID,
                                      jointIndex=joint,
                                      controlMode=pb.POSITION_CONTROL,
@@ -324,24 +359,28 @@ class InsertionEnv:
                                      targetPosition=pb.getJointState(self.robotID, joint).joint_position,
                                      force=gripForce)
 
-        # color, depth = self.allsights.render()
-        # self.allsights.updateGUI(color, depth)
+        color, depth = self.allsights.render()
+        self.allsights.updateGUI(color, depth)
 
-    # Gripper open
-    def gripper_open(self):
 
-        pb.setJointMotorControlArray(
-            self.robotID,
-            self.gripperJoints,
-            pb.POSITION_CONTROL,
-            targetPositions=np.zeros(len(self.gripperJoints)).tolist(),
-        )
 
-    def get_object_pose(self):
-        res = pb.getBasePositionAndOrientation(self.objID)
-        world_positions = res[0]
-        world_orientations = res[1]
-        world_positions = np.array(world_positions)
-        world_orientations = np.array(world_orientations)
+# pb.setJointMotorControl2(targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.001,
+#                         bodyIndex=self.robotID,
+#                         jointIndex=joint,
+#                         controlMode=pb.POSITION_CONTROL, maxVelocity=1, force=10)
 
-        return (world_positions, world_orientations)
+# pb.setJointMotorControl2(bodyIndex=self.robotID, jointIndex=joint,
+#                         controlMode=pb.POSITION_CONTROL,
+#                         targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.001,
+#                         # positionGain=0.5, velocityGain=0.5, force=1.5,
+#                         # force=1,
+#                         force=gripForce)
+
+# pb.setJointMotorControl2(bodyIndex=self.robotID,
+#                           jointIndex=joint,
+#                           controlMode=pb.POSITION_CONTROL,
+#                           targetPosition=pb.getJointState(self.robotID, joint).joint_position + 0.03,
+#                           targetVelocity=0,
+#                           force=50,
+#                           positionGain= 0.03,
+#                           velocityGain=1)

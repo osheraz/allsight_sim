@@ -9,12 +9,12 @@ TACTO rendering class
 
 from os import path as osp
 import numpy as np
-from contrib.object_loader import object_loader
+from object_loader import object_loader
 import tacto
 from tacto.renderer import euler2matrix
 import cv2
 from omegaconf import DictConfig
-from contrib.pose import (
+from pose import (
     pose_from_vertex_normal,
 )
 from scipy.spatial.transform import Rotation as R

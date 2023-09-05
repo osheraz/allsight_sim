@@ -2,6 +2,11 @@ hydra:
   run:
     dir: ./
 
+defaults:
+  - _self_
+  - allsight: allsight
+  - override hydra/job_logging: disabled # disabled | default
+
 allegro:
   urdf_path: "../assets/robots/allegro_hand_description/allegro_hand_description_left_allsight.urdf"
   base_position: [0, 0, 0.095]
