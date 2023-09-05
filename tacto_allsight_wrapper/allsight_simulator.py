@@ -16,7 +16,7 @@ from typing import Any
 from omegaconf import DictConfig
 import shutup;
 import torch
-from util.util import tensor2im
+from tacto_allsight_wrapper.util.util import tensor2im
 
 
 shutup.please()

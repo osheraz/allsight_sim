@@ -45,7 +45,7 @@ class Renderer(tRenderer):
     '''
 
     def __init__(self, width, height, background, config_path):
-        super().__init__(width, height, background, config_path, headless=False)
+        super().__init__(width, height, background, config_path, headless=True)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
         if calibration:
