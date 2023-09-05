@@ -18,7 +18,6 @@ import shutup;
 import torch
 from tacto_allsight_wrapper.util.util import tensor2im
 
-
 shutup.please()
 
 log = logging.getLogger(__name__)
@@ -68,9 +67,8 @@ class Simulator:
         self.base_h = cfg.allsight.sensor_dims.base_h
         self.cyl_h = cfg.allsight.sensor_dims.cyl_h
         self.cyl_r = cfg.allsight.sensor_dims.cyl_r
-        
-        
-        self.is_sim2real = cfg.sim2real.enable 
+
+        self.is_sim2real = cfg.sim2real.enable
         if self.is_sim2real:
             opt = {
                 "preprocess": "resize_and_crop",
@@ -78,22 +76,20 @@ class Simulator:
                 "load_size": 224,
                 "no_flip": True,
             }
-            
+
             self.transform = pre_process.get_transform(opt=opt)
-            
+
             self.model_G = networks.define_G(input_nc=3,
-                                            output_nc=3,
-                                            ngf=64,
-                                            netG="resnet_9blocks",
-                                            norm="instance",
-                                            )
-            
+                                             output_nc=3,
+                                             ngf=64,
+                                             netG="resnet_9blocks",
+                                             norm="instance",
+                                             )
+
             self.model_G.load_state_dict(torch.load(cfg.sim2real.model_G))
             self.model_G.eval()
-        
+
         self.show_contact_px = cfg.show_detect
-        
-        self.start_random_angle = cfg.summary.start_random_angle
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -122,9 +118,9 @@ class Simulator:
 
         # object body 
         # take the urdf path with the relevant id given
-        if obj_id in ['sphere3', 'sphere4', 'sphere5','hexagon','ellipse','ellipse','square']:
+        if obj_id in ['sphere3', 'sphere4', 'sphere5', 'hexagon', 'ellipse', 'ellipse', 'square']:
             obj_urdf_path = f"../assets/objects/{obj_id}.urdf"
-        elif obj_id in ['cube', 'rect','triangle']:
+        elif obj_id in ['cube', 'rect', 'triangle']:
             obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
         cfg.object.urdf_path = obj_urdf_path
@@ -151,11 +147,10 @@ class Simulator:
         '''
 
         self.start()
-        
+
         # show panel
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
-
 
         while True:
             colors_gan = []
@@ -179,6 +174,7 @@ class Simulator:
         # start the simulation thread
         self.start()
 
+        self.start_random_angle = conf.start_random_angle
         self.cyl_split = conf.cyl_split
         self.top_split = conf.top_split
         self.angle_split = conf.angle_split
@@ -222,10 +218,9 @@ class Simulator:
 
         frame_count = 0
 
-        
         random_angle = np.random.random() if self.start_random_angle else 0
-        
-        Q = np.linspace(0+random_angle, 2 * np.pi + random_angle, conf.angle_split)
+
+        Q = np.linspace(0 + random_angle, 2 * np.pi + random_angle, conf.angle_split)
 
         K1 = np.linspace(0.07, 0.1, self.cyl_split)
         K2 = np.linspace(0.05, 0.075, self.top_split)
@@ -260,8 +255,7 @@ class Simulator:
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
                 colors_gan = []
                 color, depth = self.allsight.render()
-                
-                
+
                 ## depth, contact_px = cv_obj_detect(depth)
                 # self.allsight.updateGUI(color, depth)
                 if self.is_sim2real:
@@ -269,17 +263,16 @@ class Simulator:
                         color_tensor = self.transform(color[i]).unsqueeze(0)
                         colors_gan.append(tensor2im(self.model_G(color_tensor)))
 
-                
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
                 self.allsight.updateGUI(color,
                                         depth,
                                         colors_gan=colors_gan,
                                         contact_px=contact_px)
-                
+
                 time.sleep(0.01)
 
-                for f in range(f_start_pi_10, f_end_pi_10,2):
+                for f in range(f_start_pi_10, f_end_pi_10, 2):
 
                     if i <= self.cyl_split:
                         force = f * K1[i]
@@ -337,7 +330,7 @@ class Simulator:
 
                         frame_count += 1
 
-            if conf.save : self.logger.save_batch_images()
+            if conf.save: self.logger.save_batch_images()
 
         self.logger.save_data_dict()
 
@@ -418,5 +411,3 @@ class Simulator:
             push_point_start = [[B2[0], B2[1], B2[2]], rot.tolist()]
 
         return push_point_start, push_point_end
-
-    

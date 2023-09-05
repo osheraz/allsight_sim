@@ -29,8 +29,8 @@ summary:
   start_random_angle: True
   cyl_split: 38
   top_split: 4
-  save: True
-  save_depth: True
+  save: False
+  save_depth: False
   save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 
 sim2real:
