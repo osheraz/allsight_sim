@@ -7,7 +7,7 @@ import pyrender
 from omegaconf import OmegaConf, DictConfig
 from scipy.spatial.transform import Rotation as R
 
-from tacto import Renderer, Sensor
+from tacto import Renderer as tRenderer, Sensor as tSensor
 
 
 # helper functions
@@ -35,7 +35,7 @@ def circle_mask(size=(224, 224), border=0):
     return mask
 
 
-class Renderer(Renderer):
+class Renderer(tRenderer):
     '''allsight custom renderer
 
     Parameters
@@ -45,7 +45,7 @@ class Renderer(Renderer):
     '''
 
     def __init__(self, width, height, background, config_path):
-        super().__init__(width, height, background, config_path)
+        super().__init__(width, height, background, config_path, headless=True)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
         if calibration:
@@ -150,7 +150,7 @@ class Renderer(Renderer):
                 color = colors[i]
 
                 theta = np.pi / 180 * (thetas[i] - 90)
-                tuning_angle = -np.pi / 8
+                tuning_angle = -np.pi / 16
                 light_pose_0 = euler2matrix(
                     xyz="yzx",
                     angles=[tuning_angle, 0, theta],
@@ -187,7 +187,7 @@ def get_allsight_config_path():
     return _get_default_config("config_allsight.yml")
 
 
-class Sensor(Sensor):
+class Sensor(tSensor):
     def __init__(
             self,
             width=120,
@@ -206,6 +206,7 @@ class Sensor(Sensor):
         :param background: image
         :param visualize_gui: Bool
         :param show_depth: Bool
+        :param show_cv_detect: Bool
         :param config_path:
         :param cid: Int
         """
@@ -259,12 +260,15 @@ class Sensor(Sensor):
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)
 
-            mask = circle_mask()
+            mask = circle_mask(size=(480,480))
+            # mask = circle_mask()
+
             color[0][mask == 0] = 0
+
 
             colors += color
             depths += depth
-
+            
         return colors, depths
 
     def _blur_contact(self, color: np.ndarray, depth_map: np.ndarray) -> list:
@@ -327,3 +331,64 @@ class Sensor(Sensor):
                                  blur.add_weighted.bias, dtype=cv2.CV_8U)
 
         return [result]
+
+    def updateGUI(self, colors, depths, colors_gan=[], contact_px=None):
+            """
+            Update images for visualization
+            """
+            if not self.visualize_gui:
+                return
+
+            # concatenate colors horizontally (axis=1)
+            color = np.concatenate(colors, axis=1)
+            
+            if contact_px is not None:
+                [x,y,r] = contact_px
+                # Draw the circle on the original image
+                cv2.circle(color, (x, y), int(r*2.5), (0, 255, 0), 4)
+                # Draw a small circle at the center of the detected circle
+                cv2.circle(color, (x, y), 2, (0, 0, 255), 3)
+            
+            if len(colors_gan)!=0: 
+                color_gan = np.concatenate(colors_gan, axis=1)
+
+            if self.show_depth:
+                # concatenate depths horizontally (axis=1)
+                depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
+                
+                # concatenate the resulting two images vertically (axis=0)
+                if len(colors_gan)==0:
+                    color_n_depth = np.concatenate([color, depth], axis=0)
+                else:
+                    color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
+                cv2.imshow(
+                    "color and depth", cv2.cvtColor(color_n_depth, cv2.COLOR_RGB2BGR)
+                )
+            else:
+                cv2.imshow("color", cv2.cvtColor(color, cv2.COLOR_RGB2BGR))
+
+            cv2.waitKey(1)
+
+
+    def detect_contact(self,depths)->list:
+
+        depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
+        depth_image = depth.copy()
+        depth_image = cv2.cvtColor(depth_image, cv2.COLOR_RGB2GRAY)
+        dp = 1  # Inverse ratio of the accumulator resolution to the image resolution (1 = same resolution)
+        minDist = 100  # Minimum distance between the centers of detected circles
+        param1 = 50   # Upper threshold for the internal Canny edge detector
+        param2 = 10   # Threshold for center detection.
+        minRadius = 3  # Minimum radius of the detected circles
+        maxRadius = 80  # Maximum radius of the detected circles
+
+        # Apply the Hough Circle Transform
+        circles = cv2.HoughCircles(depth_image, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+        if circles is not None:
+            contact_px = circles[0]
+            # Convert the (x, y) coordinates and radius of the circles to integers
+            contact_px = np.round(contact_px).astype("int")[0].tolist()
+        else:
+            contact_px = None
+        return contact_px
+

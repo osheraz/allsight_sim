@@ -71,7 +71,7 @@ class DataSimLogger():
         self.save = save
         self.save_depth = save_depth
         # Init of the dataset dir paths with the current day and time
-        self.date = datetime.now().strftime("%Y_%m_%d-%I:%M:%S")
+        self.date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S")
         if prefix is not None:
             self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/{}_img_{}".format(leds, indenter,prefix, self.date)
         else:
@@ -93,7 +93,7 @@ class DataSimLogger():
 
             if not os.path.exists(self.dataset_path_data): pathlib.Path(self.dataset_path_data).mkdir(parents=True, exist_ok=True)
 
-    def append(self,prefix, i, q, frame, depth, trans, rot, ft, count):
+    def append(self,prefix, i, q, frame, depth, trans, rot, ft,contact_px, count):
 
         if prefix is not None:
             img_id = '{}_image{}_{}_{:.2f}.jpg'.format(prefix,count, i, q)
@@ -110,11 +110,14 @@ class DataSimLogger():
         self.img_press_dict[img_path] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         self.depth_press_dict[depth_path] = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB)
 
+        contact_px = -1 if contact_px is None else contact_px
         self.data_dict[img_id] = {'frame': img_path,
                                   'depth': depth_path,
                                   'pose_transformed': (trans, rot),
+                                  'ref_frame': os.path.join(self.dataset_path_images_rgb, 'ref_frame.jpg'),
                                   'theta': q,
                                   'ft': ft,
+                                  'contact_px': (contact_px),
                                   'time': count,
                                   'num': i}
 
