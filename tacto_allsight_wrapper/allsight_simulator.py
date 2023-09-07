@@ -16,7 +16,7 @@ from typing import Any
 from omegaconf import DictConfig
 import shutup;
 import torch
-from tacto_allsight_wrapper.util.util import tensor2im
+from .util.util import tensor2im
 
 shutup.please()
 
@@ -33,7 +33,7 @@ from experiments.utils.geometry import rotation_matrix, concatenate_matrices, co
     convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
 from transformations import translation_matrix, translation_from_matrix, quaternion_matrix, quaternion_from_matrix
-
+from .util.util import foreground,inv_foreground
 log = logging.getLogger(__name__)
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
@@ -55,6 +55,7 @@ class Simulator:
         leds = cfg.summary.leds
         sensor_id = cfg.summary.sensor_id
         bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}{sensor_id}.jpg"))
+        self.ref_frame = bg
         conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
@@ -69,14 +70,16 @@ class Simulator:
         self.cyl_r = cfg.allsight.sensor_dims.cyl_r
 
         self.is_sim2real = cfg.sim2real.enable
+        self.device = cfg.sim2real.device
+        dim = (224, 224)
         if self.is_sim2real:
             opt = {
                 "preprocess": "resize_and_crop",
-                "crop_size": 224,
-                "load_size": 224,
+                "crop_size": dim[0],
+                "load_size": dim[1],
                 "no_flip": True,
             }
-
+            self.ref_frame = cv2.resize(cv2.cvtColor(self.ref_frame, cv2.COLOR_BGR2RGB),dim)
             self.transform = pre_process.get_transform(opt=opt)
 
             self.model_G = networks.define_G(input_nc=3,
@@ -87,9 +90,13 @@ class Simulator:
                                              )
 
             self.model_G.load_state_dict(torch.load(cfg.sim2real.model_G))
+            self.model_G.to(self.device)
             self.model_G.eval()
 
         self.show_contact_px = cfg.show_detect
+        
+        if cfg.summary.name == "collect_data":
+            self.start_random_angle = cfg.summary.start_random_angle
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -158,8 +165,9 @@ class Simulator:
             color, depth = self.allsight.render()
             if self.is_sim2real:
                 for i in range(len(color)):
-                    color_tensor = self.transform(color[i]).unsqueeze(0)
-                    colors_gan.append(tensor2im(self.model_G(color_tensor)))
+                    # color_tensor = self.transform(color[i]).unsqueeze(0)
+                    color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
+                    colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
             self.allsight.updateGUI(color,
@@ -261,7 +269,7 @@ class Simulator:
                 # self.allsight.updateGUI(color, depth)
                 if self.is_sim2real:
                     for i in range(len(color)):
-                        color_tensor = self.transform(color[i]).unsqueeze(0)
+                        color_tensor = self.transform(color[i]).unsqueeze(0).to()
                         colors_gan.append(tensor2im(self.model_G(color_tensor)))
 
                 if self.show_contact_px:
