@@ -14,7 +14,7 @@ show_detect: True # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: ellipse # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
+  indenter: cube # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle | hexagon | square
   leds: white # white | rrrgggbbb | rgbrgbrgb
   sensor_id: 12 # for white: 12 - 19  
               # for rrrgggbbb: 3
@@ -29,7 +29,7 @@ summary:
   start_random_angle: True
   cyl_split: 38
   top_split: 4
-  save: False
+  save: True
   save_depth: False
   save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 

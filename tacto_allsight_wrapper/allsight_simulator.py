@@ -180,20 +180,18 @@ class Simulator:
                                     contact_px=contact_px)
 
         self.t.stop()
-
     def collect_data(self, conf):
 
         # start the simulation thread
         self.start()
 
-        self.start_random_angle = conf.start_random_angle
         self.cyl_split = conf.cyl_split
         self.top_split = conf.top_split
         self.angle_split = conf.angle_split
 
         # Create constraints
         '''
-        due to limitation of pybullet orientation handling,
+        due to limitation of pybullet orienation handling,
         instead of changing the constraint, we recreate it every timestamp
         '''
         (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
@@ -230,9 +228,10 @@ class Simulator:
 
         frame_count = 0
 
+        
         random_angle = np.random.random() if self.start_random_angle else 0
-
-        Q = np.linspace(0 + random_angle, 2 * np.pi + random_angle, conf.angle_split)
+        
+        Q = np.linspace(0+random_angle, 2 * np.pi + random_angle, conf.angle_split)
 
         K1 = np.linspace(0.07, 0.1, self.cyl_split)
         K2 = np.linspace(0.05, 0.075, self.top_split)
@@ -254,7 +253,6 @@ class Simulator:
 
             for i in range(conf.start_from, self.cyl_split + self.top_split, 1):
 
-
                 if i == self.cyl_split: continue
 
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
@@ -268,24 +266,26 @@ class Simulator:
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
                 colors_gan = []
                 color, depth = self.allsight.render()
-
+                
+                
                 ## depth, contact_px = cv_obj_detect(depth)
                 # self.allsight.updateGUI(color, depth)
                 if self.is_sim2real:
                     for i in range(len(color)):
-                        color_tensor = self.transform(color[i]).unsqueeze(0).to()
+                        color_tensor = self.transform(color[i]).unsqueeze(0)
                         colors_gan.append(tensor2im(self.model_G(color_tensor)))
 
+                
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
                 self.allsight.updateGUI(color,
                                         depth,
                                         colors_gan=colors_gan,
                                         contact_px=contact_px)
-
+                
                 time.sleep(0.01)
 
-                for f in range(f_start_pi_10, f_end_pi_10, 2):
+                for f in range(f_start_pi_10, f_end_pi_10,2):
 
                     if i <= self.cyl_split:
                         force = f * K1[i]
@@ -343,15 +343,180 @@ class Simulator:
 
                         frame_count += 1
 
-
-            if not removed:
-                pyb.removeConstraint(self.cid)
-                removed = True
-
-
-            if conf.save: self.logger.save_batch_images()
+            if conf.save : self.logger.save_batch_images()
 
         self.logger.save_data_dict()
+    # def collect_data(self, conf):
+
+    #     # start the simulation thread
+    #     self.start()
+
+    #     self.start_random_angle = conf.start_random_angle
+    #     self.cyl_split = conf.cyl_split
+    #     self.top_split = conf.top_split
+    #     self.angle_split = conf.angle_split
+
+    #     # Create constraints
+    #     '''
+    #     due to limitation of pybullet orientation handling,
+    #     instead of changing the constraint, we recreate it every timestamp
+    #     '''
+    #     (self._obj_x, self._obj_y, self._obj_z), self._obj_or = self.obj.get_base_pose()
+    #     init_xyz = [self._obj_x, self._obj_y, self._obj_z]
+
+    #     self.cid = pyb.createConstraint(
+    #         self.obj.id,  # parent body unique id
+    #         -1,  # parent link index (or -1 for the base)
+    #         -1,  # child body unique id, or -1 for no body (specify anon-dynamic child frame in world coordinates)
+    #         -1,  # child link index, or -1 for the base
+    #         pyb.JOINT_FIXED,  # joint type: JOINT_PRISMATIC, JOINT_FIXED,JOINT_POINT2POINT, JOINT_GEAR
+    #         [0, 0, 0],  # joint axis, in child link frame
+    #         [0, 0, 0],  # position of the joint frame relative to parent center of mass frame.
+    #         init_xyz
+    #         # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
+    #     )
+
+    #     # create data logger object
+    #     self.logger = DataSimLogger(conf.save_prefix,
+    #                                 conf.leds,
+    #                                 conf.indenter,
+    #                                 save=conf.save,
+    #                                 save_depth=conf.save_depth)
+
+    #     # take ref frame
+    #     ref_frame, _ = self.allsight.render()
+
+    #     ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
+
+    #     if conf.save:
+    #         ref_frame[0] = cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB)
+    #         if not cv2.imwrite(ref_img_color_path, ref_frame[0]):
+    #             raise Exception("Could not write image")
+
+    #     frame_count = 0
+
+    #     random_angle = np.random.random() if self.start_random_angle else 0
+
+    #     Q = np.linspace(0 + random_angle, 2 * np.pi + random_angle, conf.angle_split)
+
+    #     K1 = np.linspace(0.07, 0.1, self.cyl_split)
+    #     K2 = np.linspace(0.05, 0.075, self.top_split)
+
+    #     f_start_pi_10 = 89
+    #     f_end_pi_10 = 101
+
+    #     current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
+    #     current_euler = pyb.getEulerFromQuaternion(current_quat)
+
+    #     for q in Q:
+
+    #         # Calculate the new orientation by adding the desired rotation
+    #         new_euler = [current_euler[0], current_euler[1], current_euler[2] + q]
+    #         new_quat = pyb.getQuaternionFromEuler(new_euler)
+
+    #         self.body.set_base_pose(position=current_pos, orientation=new_quat)
+    #         pyb.stepSimulation()
+
+    #         for i in range(conf.start_from, self.cyl_split + self.top_split, 1):
+
+
+    #             if i == self.cyl_split: continue
+
+    #             push_point_start, push_point_end = self.get_push_point_by_index(0, i)
+
+    #             pyb.changeConstraint(self.cid,
+    #                                  jointChildPivot=push_point_start[0],
+    #                                  jointChildFrameOrientation=push_point_start[1],
+    #                                  maxForce=200)
+    #             pyb.stepSimulation()
+
+    #             if i == self.top_split + self.cyl_split - 1 and q != 0: continue
+    #             colors_gan = []
+    #             color, depth = self.allsight.render()
+
+    #             ## depth, contact_px = cv_obj_detect(depth)
+    #             # self.allsight.updateGUI(color, depth)
+    #             if self.is_sim2real:
+    #                 for i in range(len(color)):
+    #                     color_tensor = self.transform(color[i]).unsqueeze(0).to()
+    #                     colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+    #             if self.show_contact_px:
+    #                 contact_px = self.allsight.detect_contact(depth)
+    #             self.allsight.updateGUI(color,
+    #                                     depth,
+    #                                     colors_gan=colors_gan,
+    #                                     contact_px=contact_px)
+
+    #             time.sleep(0.01)
+
+    #             for f in range(f_start_pi_10, f_end_pi_10, 2):
+
+    #                 if i <= self.cyl_split:
+    #                     force = f * K1[i]
+    #                 else:
+    #                     force = f * K2[self.cyl_split + self.top_split - i]
+
+    #                 pyb.changeConstraint(self.cid,
+    #                                      jointChildPivot=push_point_end[0],
+    #                                      jointChildFrameOrientation=push_point_end[1],
+    #                                      maxForce=force)
+
+    #                 colors_gan = []
+    #                 color, depth = self.allsight.render()
+    #                 # self.allsight.updateGUI(color, depth)
+    #                 if self.is_sim2real:
+    #                     for i in range(len(color)):
+    #                         color_tensor = self.transform(color[i]).unsqueeze(0)
+    #                         colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+    #                 if self.show_contact_px:
+    #                     contact_px = self.allsight.detect_contact(depth)
+    #                 self.allsight.updateGUI(color,
+    #                                         depth,
+    #                                         colors_gan=colors_gan,
+    #                                         contact_px=contact_px)
+    #                 pyb.stepSimulation()
+    #                 time.sleep(0.05)
+
+    #                 if np.sum(depth):
+    #                     pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
+
+    #                     # TODO: should be fixed by calibration
+    #                     pose[0] -= np.sign(pose[0]) * 0.002  # radi
+    #                     pose[1] -= np.sign(pose[1]) * 0.002  # radi
+    #                     pose[2] -= self.base_h + 0.004  # base_h + safe_zone
+
+    #                     rot = pyb.getBasePositionAndOrientation(self.obj.id)[1][:4]
+
+    #                     trans_mat, rot_mat = translation_matrix(pose), quaternion_matrix(
+    #                         convert_quat_xyzw_to_wxyz(rot))
+    #                     T_finger_origin_press = np.dot(trans_mat, rot_mat)
+    #                     T_finger_origin_press_rotate_q = np.matmul(rotation_matrix(-q, zaxis),
+    #                                                                T_finger_origin_press)
+    #                     pose = translation_from_matrix(T_finger_origin_press_rotate_q).tolist()
+    #                     rot = convert_quat_wxyz_to_xyzw(
+    #                         quaternion_from_matrix(T_finger_origin_press_rotate_q).tolist())
+
+    #                     force = self.allsight.get_force('cam0')['2_-1']
+
+    #                     color_img = color[0]
+    #                     depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
+
+    #                     self.logger.append(conf.save_prefix, i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+    #                                        color_img, depth_img, pose, rot, force, contact_px, frame_count)
+
+    #                     frame_count += 1
+
+
+    #         if not removed:
+    #             pyb.removeConstraint(self.cid)
+    #             removed = True
+
+
+    #         if conf.save: self.logger.save_batch_images()
+
+    #     self.logger.save_data_dict()
 
     def get_push_point_by_index(self, q: float, i: int) -> Any:
         '''Get start and end points for every press process
