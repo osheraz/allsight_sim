@@ -93,7 +93,8 @@ class Simulator:
         
         self.show_contact_px = cfg.show_detect
         
-        self.start_random_angle = cfg.summary.start_random_angle
+        if cfg.summary.name == "collect_data":
+            self.start_random_angle = cfg.summary.start_random_angle
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
