@@ -132,14 +132,8 @@ class Simulator:
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
-<<<<<<< HEAD
-        # # Create control panel to control the 6DoF pose of the object
-        # self.panel = px.gui.PoseControlPanel(self.obj, **cfg.object_control_panel)
-        # self.panel.start()
-=======
         # load control panel config
         self.object_control_panel = cfg.object_control_panel
->>>>>>> test-collect_data
 
     def start(self):
         '''Start the simulation thread
@@ -248,17 +242,7 @@ class Simulator:
 
             for i in range(conf.start_from, self.cyl_split + self.top_split, 1):
 
-<<<<<<< HEAD
-                push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
-                # pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
-                #                      jointChildFrameOrientation=push_point_start[1],
-                #                      maxForce=f_push)
-
-                self.cid = pyb.createConstraint(self.obj.id, -1, -1, -1, pyb.JOINT_FIXED, [0, 0, 0], [0, 0, 0],
-                                                childFramePosition=push_point_start[0],
-                                                childFrameOrientation=push_point_start[1])
-=======
                 if i == self.cyl_split: continue
 
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
@@ -266,17 +250,8 @@ class Simulator:
                 pyb.changeConstraint(self.cid,
                                      jointChildPivot=push_point_start[0],
                                      jointChildFrameOrientation=push_point_start[1],
-<<<<<<< HEAD
-                                     maxForce=50)
-
-                if i == self.top_split + self.cyl_split - 1 and q!= 0: continue
->>>>>>> test-collect_data
-
-                # self.obj.set_base_pose(position=push_point_start[0], orientation=push_point_start[1])
-=======
                                      maxForce=200)
                 pyb.stepSimulation()
->>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
                 colors_gan = []
@@ -300,16 +275,10 @@ class Simulator:
 
                 for f in range(f_start_pi_10, f_end_pi_10, 2):
 
-<<<<<<< HEAD
-                # self.obj.set_base_pose(position=push_point_end[0], orientation=push_point_end[1])
-
-                for _ in range(5):
-=======
                     if i <= self.cyl_split:
                         force = f * K1[i]
                     else:
                         force = f * K2[self.cyl_split + self.top_split - i]
->>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
                     pyb.changeConstraint(self.cid,
                                          jointChildPivot=push_point_end[0],
@@ -362,18 +331,13 @@ class Simulator:
 
                         frame_count += 1
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                 if not removed:
                     pyb.removeConstraint(self.cid)
                     removed = True
 
-=======
->>>>>>> test-collect_data
-            if conf['save']: self.logger.save_batch_images()
-=======
+
             if conf.save: self.logger.save_batch_images()
->>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
         self.logger.save_data_dict()
 
