@@ -16,6 +16,7 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
+
 # import allsight wrapper
 PATH = os.path.join(os.path.dirname(__file__), '../')
 sys.path.insert(0, PATH)

@@ -14,7 +14,7 @@ show_detect: True # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
+  indenter: ellipse # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
   leds: white # white | rrrgggbbb | rgbrgbrgb
   sensor_id: 12 # for white: 12 - 19  
               # for rrrgggbbb: 3

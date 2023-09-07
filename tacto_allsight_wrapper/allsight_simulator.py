@@ -33,7 +33,7 @@ from experiments.utils.geometry import rotation_matrix, concatenate_matrices, co
     convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
 from transformations import translation_matrix, translation_from_matrix, quaternion_matrix, quaternion_from_matrix
-from .util.util import foreground,inv_foreground
+from .util.util import foreground,inv_foreground, circle_mask
 log = logging.getLogger(__name__)
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
@@ -70,16 +70,18 @@ class Simulator:
         self.cyl_r = cfg.allsight.sensor_dims.cyl_r
 
         self.is_sim2real = cfg.sim2real.enable
-        self.device = cfg.sim2real.device
+        
         dim = (224, 224)
         if self.is_sim2real:
+            self.device = cfg.sim2real.device
             opt = {
                 "preprocess": "resize_and_crop",
                 "crop_size": dim[0],
                 "load_size": dim[1],
                 "no_flip": True,
             }
-            self.ref_frame = cv2.resize(cv2.cvtColor(self.ref_frame, cv2.COLOR_BGR2RGB),dim)
+            
+            self.ref_frame = cv2.resize(cv2.cvtColor(self.ref_frame, cv2.COLOR_BGR2RGB),dim)*circle_mask()
             self.transform = pre_process.get_transform(opt=opt)
 
             self.model_G = networks.define_G(input_nc=3,
@@ -165,9 +167,11 @@ class Simulator:
             color, depth = self.allsight.render()
             if self.is_sim2real:
                 for i in range(len(color)):
-                    # color_tensor = self.transform(color[i]).unsqueeze(0)
-                    color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                    colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
+                    color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
+                    # color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
+                    # colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
+                    colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
             self.allsight.updateGUI(color,
@@ -340,9 +344,9 @@ class Simulator:
                         frame_count += 1
 
 
-                if not removed:
-                    pyb.removeConstraint(self.cid)
-                    removed = True
+            if not removed:
+                pyb.removeConstraint(self.cid)
+                removed = True
 
 
             if conf.save: self.logger.save_batch_images()

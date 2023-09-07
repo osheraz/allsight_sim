@@ -28,13 +28,13 @@ def circle_mask(size=(224, 224), border=10, fix=(0,0)):
 
 def inv_foreground(ref_frame, diff, offset=0.0):
         
-        mask = circle_mask(border=15)
+        mask = circle_mask(border=12)
         
-        ref_frame = np.float32(ref_frame)
-        diff = np.float32(diff)
+        # ref_frame = np.float32(ref_frame)
+        # diff = np.float32(diff)
         diff = (diff*2 - 255) 
         frame = ref_frame + diff
-        
+
         frame = (frame).astype(np.uint8)
         frame = frame*mask
 
