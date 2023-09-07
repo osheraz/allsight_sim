@@ -20,7 +20,6 @@ summary:
   start_from: 30
   up_to: 30
   gel: clear
-<<<<<<< HEAD
   angle_split: 18
   cyl_split: 20
   top_split: 8
@@ -37,10 +36,8 @@ render:
     min : 0.00
     max : 0.00
   randomize : False
-=======
-  angle_split: 250
-  cyl_split: 50
-  top_split: 5
-  save: True
-  save_prefix: id3_force1_deformation0007
->>>>>>> test-collect_data
+  # angle_split: 250
+  # cyl_split: 50
+  # top_split: 5
+  # save: True
+  # save_prefix: id3_force1_deformation0007

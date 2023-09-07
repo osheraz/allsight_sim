@@ -15,6 +15,8 @@ import numpy as np
 from typing import Any
 from omegaconf import DictConfig
 import shutup;
+import torch
+from tacto_allsight_wrapper.util.util import tensor2im
 
 shutup.please()
 
@@ -25,6 +27,7 @@ from tacto_allsight_wrapper import allsight_wrapper
 # import allsight wrapper
 PATH = os.path.join(os.path.dirname(__file__), "../")
 sys.path.insert(0, PATH)
+from experiments.models import networks, pre_process
 from experiments.utils.logger import DataSimLogger
 from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, \
     convert_quat_wxyz_to_xyzw
@@ -38,9 +41,6 @@ origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 class Simulator:
 
     def __init__(self, cfg: DictConfig,
-                 summary: dict,
-                 with_bg=False,
-                 attributes: dict = None
                  ):
 
         '''Simulator object for defining simulation scene with allsight sensor
@@ -49,26 +49,47 @@ class Simulator:
         ----------
         cfg : DictConfig
             allsight config dict -> allsight.yaml
-        with_bg : bool, optional
-            Use background img, by default False
-        attributes : dict, optional
-            Set object attributes if needed, by default None
         '''
 
         # bg image
-        leds = summary['leds']
-        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}.jpg"))
+        leds = cfg.summary.leds
+        sensor_id = cfg.summary.sensor_id
+        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}{sensor_id}.jpg"))
         conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
 
         # initialize allsight
         self.allsight = allsight_wrapper.Sensor(
-            **cfg.tacto, **{"config_path": conf_path},
-            background=bg if with_bg else None
+            **cfg.allsight.tacto, **{"config_path": conf_path},
+            background=bg if cfg.with_bg else None,
+            show_depth=cfg.show_depth
         )
 
-        self.base_h = cfg.sensor_dims.base_h
-        self.cyl_h = cfg.sensor_dims.cyl_h
-        self.cyl_r = cfg.sensor_dims.cyl_r
+        self.base_h = cfg.allsight.sensor_dims.base_h
+        self.cyl_h = cfg.allsight.sensor_dims.cyl_h
+        self.cyl_r = cfg.allsight.sensor_dims.cyl_r
+
+        self.is_sim2real = cfg.sim2real.enable
+        if self.is_sim2real:
+            opt = {
+                "preprocess": "resize_and_crop",
+                "crop_size": 224,
+                "load_size": 224,
+                "no_flip": True,
+            }
+
+            self.transform = pre_process.get_transform(opt=opt)
+
+            self.model_G = networks.define_G(input_nc=3,
+                                             output_nc=3,
+                                             ngf=64,
+                                             netG="resnet_9blocks",
+                                             norm="instance",
+                                             )
+
+            self.model_G.load_state_dict(torch.load(cfg.sim2real.model_G))
+            self.model_G.eval()
+
+        self.show_contact_px = cfg.show_detect
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
@@ -79,7 +100,7 @@ class Simulator:
         cfg : DictConfig
             allsight config dict -> allsight.yaml
         obj_id : str, optional
-            Define which size of sphere to use, by default '30'
+            Define which object
         """
 
         # Initialize World
@@ -90,16 +111,16 @@ class Simulator:
             pyb.COV_ENABLE_SHADOWS, 1, lightPosition=[50, 0, 80],
         )
 
-        # pyb.connect(pyb.DIRECT)
-        # pyb.setGravity(0, 0, -9.81)  # Major Tom to planet Earth
+        pyb.connect(pyb.DIRECT)
+        pyb.setGravity(0, 0, 0)  # Major Tom to planet Earth
 
         self.body = px.Body(**cfg.allsight)
 
         # object body 
         # take the urdf path with the relevant id given
-        if obj_id in ['sphere3', 'sphere4', 'sphere5']:
+        if obj_id in ['sphere3', 'sphere4', 'sphere5', 'hexagon', 'ellipse', 'ellipse', 'square']:
             obj_urdf_path = f"../assets/objects/{obj_id}.urdf"
-        elif obj_id in ['cube', 'rect', 'ellipse']:
+        elif obj_id in ['cube', 'rect', 'triangle']:
             obj_urdf_path = f"../assets/objects/{obj_id}_small.urdf"
 
         cfg.object.urdf_path = obj_urdf_path
@@ -132,14 +153,25 @@ class Simulator:
         '''
 
         self.start()
-        
+
         # show panel
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
-        
+
         while True:
+            colors_gan = []
+            contact_px = None
             color, depth = self.allsight.render()
-            self.allsight.updateGUI(color, depth)
+            if self.is_sim2real:
+                for i in range(len(color)):
+                    color_tensor = self.transform(color[i]).unsqueeze(0)
+                    colors_gan.append(tensor2im(self.model_G(color_tensor)))
+            if self.show_contact_px:
+                contact_px = self.allsight.detect_contact(depth)
+            self.allsight.updateGUI(color,
+                                    depth,
+                                    colors_gan=colors_gan,
+                                    contact_px=contact_px)
 
         self.t.stop()
 
@@ -148,9 +180,10 @@ class Simulator:
         # start the simulation thread
         self.start()
 
-        self.cyl_split = conf['cyl_split']
-        self.top_split = conf['top_split']
-        self.angle_split = conf['angle_split']
+        self.start_random_angle = conf.start_random_angle
+        self.cyl_split = conf.cyl_split
+        self.top_split = conf.top_split
+        self.angle_split = conf.angle_split
 
         # Create constraints
         '''
@@ -173,25 +206,34 @@ class Simulator:
         )
 
         # create data logger object
-        self.logger = DataSimLogger(conf["save_prefix"],
-                                    conf['leds'],
-                                    conf['indenter'],
-                                    save=conf['save'],
-                                    save_depth=False)
+        self.logger = DataSimLogger(conf.save_prefix,
+                                    conf.leds,
+                                    conf.indenter,
+                                    save=conf.save,
+                                    save_depth=conf.save_depth)
 
         # take ref frame
         ref_frame, _ = self.allsight.render()
 
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
 
-        if conf['save']:
+        if conf.save:
             ref_frame[0] = cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB)
             if not cv2.imwrite(ref_img_color_path, ref_frame[0]):
                 raise Exception("Could not write image")
 
         frame_count = 0
 
-        Q = np.linspace(0, 2 * np.pi, conf['angle_split'])
+        random_angle = np.random.random() if self.start_random_angle else 0
+
+        Q = np.linspace(0 + random_angle, 2 * np.pi + random_angle, conf.angle_split)
+
+        K1 = np.linspace(0.07, 0.1, self.cyl_split)
+        K2 = np.linspace(0.05, 0.075, self.top_split)
+
+        f_start_pi_10 = 89
+        f_end_pi_10 = 101
+
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
 
@@ -204,7 +246,7 @@ class Simulator:
             self.body.set_base_pose(position=current_pos, orientation=new_quat)
             pyb.stepSimulation()
 
-            for i in range(conf['start_from'], self.cyl_split + self.top_split, 1):
+            for i in range(conf.start_from, self.cyl_split + self.top_split, 1):
 
 <<<<<<< HEAD
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
@@ -221,34 +263,77 @@ class Simulator:
 
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_start[0],
+                pyb.changeConstraint(self.cid,
+                                     jointChildPivot=push_point_start[0],
                                      jointChildFrameOrientation=push_point_start[1],
+<<<<<<< HEAD
                                      maxForce=50)
 
                 if i == self.top_split + self.cyl_split - 1 and q!= 0: continue
 >>>>>>> test-collect_data
 
                 # self.obj.set_base_pose(position=push_point_start[0], orientation=push_point_start[1])
+=======
+                                     maxForce=200)
+                pyb.stepSimulation()
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
+                if i == self.top_split + self.cyl_split - 1 and q != 0: continue
+                colors_gan = []
                 color, depth = self.allsight.render()
-                self.allsight.updateGUI(color, depth)
+
+                ## depth, contact_px = cv_obj_detect(depth)
+                # self.allsight.updateGUI(color, depth)
+                if self.is_sim2real:
+                    for i in range(len(color)):
+                        color_tensor = self.transform(color[i]).unsqueeze(0)
+                        colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+                if self.show_contact_px:
+                    contact_px = self.allsight.detect_contact(depth)
+                self.allsight.updateGUI(color,
+                                        depth,
+                                        colors_gan=colors_gan,
+                                        contact_px=contact_px)
+
                 time.sleep(0.01)
 
-                pyb.changeConstraint(self.cid, jointChildPivot=push_point_end[0],
-                                     jointChildFrameOrientation=push_point_end[1],
-                                     maxForce=20)
+                for f in range(f_start_pi_10, f_end_pi_10, 2):
 
+<<<<<<< HEAD
                 # self.obj.set_base_pose(position=push_point_end[0], orientation=push_point_end[1])
 
                 for _ in range(5):
+=======
+                    if i <= self.cyl_split:
+                        force = f * K1[i]
+                    else:
+                        force = f * K2[self.cyl_split + self.top_split - i]
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
+                    pyb.changeConstraint(self.cid,
+                                         jointChildPivot=push_point_end[0],
+                                         jointChildFrameOrientation=push_point_end[1],
+                                         maxForce=force)
+
+                    colors_gan = []
                     color, depth = self.allsight.render()
-                    time.sleep(0.01)
+                    # self.allsight.updateGUI(color, depth)
+                    if self.is_sim2real:
+                        for i in range(len(color)):
+                            color_tensor = self.transform(color[i]).unsqueeze(0)
+                            colors_gan.append(tensor2im(self.model_G(color_tensor)))
+
+                    if self.show_contact_px:
+                        contact_px = self.allsight.detect_contact(depth)
+                    self.allsight.updateGUI(color,
+                                            depth,
+                                            colors_gan=colors_gan,
+                                            contact_px=contact_px)
+                    pyb.stepSimulation()
+                    time.sleep(0.05)
 
                     if np.sum(depth):
-                        self.allsight.updateGUI(color, depth)
-
-                        # time.sleep(0.05)
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
 
                         # TODO: should be fixed by calibration
@@ -272,12 +357,12 @@ class Simulator:
                         color_img = color[0]
                         depth_img = np.concatenate(list(map(self.allsight._depth_to_color, depth)), axis=1)
 
-                        self.logger.append(conf["save_prefix"], i, np.interp(q, [0, 2 * np.pi], [0, 1]),
-                                           color_img, depth_img, pose, rot, force, frame_count)
+                        self.logger.append(conf.save_prefix, i, np.interp(q, [0, 2 * np.pi], [0, 1]),
+                                           color_img, depth_img, pose, rot, force, contact_px, frame_count)
 
                         frame_count += 1
-                        break
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 if not removed:
                     pyb.removeConstraint(self.cid)
@@ -286,6 +371,9 @@ class Simulator:
 =======
 >>>>>>> test-collect_data
             if conf['save']: self.logger.save_batch_images()
+=======
+            if conf.save: self.logger.save_batch_images()
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
 
         self.logger.save_data_dict()
 
@@ -343,15 +431,15 @@ class Simulator:
             phi = np.linspace(0, np.pi / 2, self.top_split)[::-1][i - len(H_cyl)]
 
             B = np.asarray([
-                self.cyl_r * np.sin(phi) * np.cos(q),
-                self.cyl_r * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * np.cos(phi),
+                (self.cyl_r) * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * np.cos(phi),
             ])
 
             B2 = np.asarray([
-                self.cyl_r * G * np.sin(phi) * np.cos(q),
-                self.cyl_r * G * np.sin(phi) * np.sin(q),
-                self.base_h + self.cyl_h + self.cyl_r * G * np.cos(phi),
+                (self.cyl_r) * G * np.sin(phi) * np.cos(q),
+                (self.cyl_r) * G * np.sin(phi) * np.sin(q),
+                self.base_h + self.cyl_h + (self.cyl_r) * G * np.cos(phi),
             ])
 
             Ry = rotation_matrix(phi, yaxis)

@@ -47,18 +47,7 @@ NOTE: Adjust simulation parameters on [experiments/conf](experiments/conf) folde
 
 This project is licensed under MIT license, as found in the [LICENSE](LICENSE) file.
 
-## Bibtex
 
-```
-@misc{azulay2023allsight,
-      title={AllSight: A Low-Cost and High-Resolution Round Tactile Sensor with Zero-Shot Learning Capability}, 
-      author={Osher Azulay and Nimrod Curtis and Rotem Sokolovsky and Guy Levitski and Daniel Slomovik and Guy Lilling and Avishai Sintov},
-      year={2023},
-      eprint={2307.02928},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
-}
-```
 
 
 

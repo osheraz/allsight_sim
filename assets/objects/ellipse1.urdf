@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<robot name="urdf_robot">
+
+  <link name="base_link">
+    <contact>
+      <rolling_friction value="0.001"/>
+      <spinning_friction value="0.001"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+       <mass value=".1"/>
+       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+<<<<<<< HEAD:assets/objects/ellipse_small.urdf
+        <mesh filename="textured_sphere_smooth.obj" scale="0.004 0.004 0.002"/>
+=======
+        <mesh filename="ellipse.obj" scale="1 1 1"/>
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645:assets/objects/ellipse1.urdf
+      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+<<<<<<< HEAD:assets/objects/ellipse_small.urdf
+	 <sphere radius="0.004"/>
+=======
+        <mesh filename="ellipse.obj" scale="1 1 1"/>
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645:assets/objects/ellipse1.urdf
+      </geometry>
+    </collision>
+  </link>
+</robot>
+

@@ -3,19 +3,28 @@
   <link name="baseLink">
     <contact>
     	<friction_anchor/>
-    	   <lateral_friction value="0.5"/>
+        <lateral_friction value="0.5"/>
         <rolling_friction value="0.005"/>
         <spinning_friction value="0.005"/>
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
+<<<<<<< HEAD
        <mass value="0.01"/>
        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+=======
+       <mass value="0.2"/>
+       <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
+<<<<<<< HEAD
 				<mesh filename="cube.obj" scale=".04 .02 .07"/>
+=======
+				<mesh filename="cube.obj" scale=".004 .004 .002"/>
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
       </geometry>
        <material name="white">
         <color rgba="1 1 1 1"/>
@@ -24,9 +33,12 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0 "/>
       <geometry>
+<<<<<<< HEAD
 	 	<box size=".04 .02 .07"/>
+=======
+	 	<box size=".004 .004 .002"/>
+>>>>>>> cdda80e6c3f3b0cc4ddaf9a29cb7da7a49e62645
       </geometry>
     </collision>
   </link>
 </robot>
-

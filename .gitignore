@@ -16,3 +16,6 @@ tacto.egg-info/
 experiments/dataset/
 experiments/allsight_sim_dataset/
 experiments/conf/saved_configs
+experiments/models/train_allsight_regressor/train_history
+experiments/models/reggressor/
+experiments/models/GAN

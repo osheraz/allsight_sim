@@ -9,7 +9,7 @@ sensor:
   # - Sensor origin is the same as .stl/.obj origin
   camera:
     - cam0:
-      position: [0.01, 0.0, 0.0] # Camera position
+      position: [0.013, 0.0, 0.0] # Camera position
       orientation: [90, 0 , -90] # Euler angles, "xyz", in degrees; e.g. [0, 0, 0]: towards negative z-axis; [90, 0, -90]: towards x-axis
       yfov: 115  #140.8 # Vertical field of view in degrees
       znear: 0.001  # Distance to the near clipping plane, in meters
@@ -55,7 +55,7 @@ sensor:
   noise:
     color:
       mean: 0
-      std: 2
+      std: 0
 
   force:
     enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---
