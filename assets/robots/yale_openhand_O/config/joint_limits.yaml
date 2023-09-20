@@ -1,0 +1,15 @@
+gripper_joint_names:
+  - $(arg prefix)base_to_finger_1_1
+  - $(arg prefix)finger_1_1_to_finger_1_2
+  - $(arg prefix)finger_1_2_to_finger_1_3
+  - $(arg prefix)base_to_finger_2_1
+  - $(arg prefix)finger_2_1_to_finger_2_2
+  - $(arg prefix)finger_2_2_to_finger_2_3
+  - $(arg prefix)base_to_finger_3_2
+  - $(arg prefix)finger_3_2_to_finger_3_3
+
+gripper_joint_limits_min:
+  - 0.96
+
+gripper_joint_limits_max:
+  - -0.09

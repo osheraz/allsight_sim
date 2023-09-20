@@ -1,13 +1,13 @@
-# defaults:
-#   - override hydra/job_logging: disabled
+hydra:
+  run:
+    dir: ./
 
-# hydra:
-#   run:
-#     dir: .././
+#defaults:
+# - override hydra/job_logging: disabled
 
 tacto:
-  width: 480 # 480 | 224 
-  height: 480 # 480 | 224 for the gan
+  width: 224 # 480 | 224 
+  height: 224 # 480 | 224 for the gan
   visualize_gui: True
 
 allsight:

@@ -1,0 +1,12 @@
+gripper: {
+  gripper_type: 'yale_openhand_O'
+}
+model_O: {
+  proximal_finger_spring_coefficient: 0.1, # 7
+  distal_finger_spring_coefficient: 0.1, # 14
+  proximal_finger_damping_coefficient: 0.005,
+  distal_finger_damping_coefficient: 0.0005,
+  tendon_max_force: 1.0, # 20
+  finger_tendon_force_distribution: [1,0.5],
+  lift_values: [0,0.2],
+}

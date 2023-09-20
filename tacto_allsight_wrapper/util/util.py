@@ -4,6 +4,54 @@ import torch
 import numpy as np
 from PIL import Image
 import os
+import cv2
+from scipy.spatial.transform import Rotation as R
+
+
+# helper functions
+def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=False):
+    r = R.from_euler(xyz, angles, degrees=degrees)
+    pose = np.eye(4)
+    pose[:3, 3] = translation
+    pose[:3, :3] = r.as_matrix()
+    return pose
+
+
+def circle_mask(size=(224, 224), border=10, fix=(0,0)):
+    mask = np.zeros((size[0], size[1]), dtype=np.uint8) 
+    m_center = (size[0] // 2, size[1] // 2)
+    m_radius = min(size[0], size[1]) // 2 - border
+    mask = cv2.circle(mask, m_center, m_radius, 1, thickness=-1)
+    mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
+    return mask
+
+
+def inv_foreground(ref_frame, diff, offset=0.0):
+        
+        mask = circle_mask(border=15)
+        
+        ref_frame = np.float32(ref_frame)
+        diff = np.float32(diff)
+        diff = (diff*2 - 255) 
+        frame = ref_frame + diff
+        
+        frame = (frame).astype(np.uint8)
+        frame = frame*mask
+
+        return frame
+    
+def foreground(frame, ref_frame, offset=0.0):
+        mask = circle_mask()
+        
+        frame = np.float32(frame)
+        ref_frame = np.float32(ref_frame)
+
+        diff_frame = frame - ref_frame
+        diff_frame = diff_frame  + 255
+        
+        diff_frame = (diff_frame/2).astype(np.uint8)
+        diff_frame = diff_frame*mask
+        return diff_frame
 
 
 def tensor2im(input_image, imtype=np.uint8):

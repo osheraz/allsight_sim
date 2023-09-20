@@ -18,7 +18,7 @@ sensor:
   gel:
     origin: [0.0, 0, 0] # Center coordinate of the gel, in meters
     width: 0.019 # Width of the gel, y-axis, in meters
-    height: 0.05 # Height of the gel, z-axis, in meters 
+    height: 0.05 # Height of the gel, z-axis, in meters
     curvature: True  # Model the gel as curve? True/False 
     curvatureMax: -0.94  # Deformation of the gel due to convexity 
     R: 0.5 # Radius of curved gel

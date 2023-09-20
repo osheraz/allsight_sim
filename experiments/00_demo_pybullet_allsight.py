@@ -26,7 +26,6 @@ from omegaconf import DictConfig, OmegaConf
 # Load the config YAML file from experiments/conf/allsight.yaml
 @hydra.main(config_path="conf", config_name="experiment_demo")
 def main(cfg):
-
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     simulator = Simulator(cfg=cfg)

@@ -5,34 +5,11 @@ import numpy as np
 import pybullet as p
 import pyrender
 from omegaconf import OmegaConf, DictConfig
-from scipy.spatial.transform import Rotation as R
-
+from .util.util import circle_mask, euler2matrix
 from tacto import Renderer as tRenderer, Sensor as tSensor
 
 
-# helper functions
-def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=False):
-    r = R.from_euler(xyz, angles, degrees=degrees)
-    pose = np.eye(4)
-    pose[:3, 3] = translation
-    pose[:3, :3] = r.as_matrix()
-    return pose
 
-
-def circle_mask(size=(224, 224), border=0):
-    """
-        used to filter center circular area of a given image,
-        corresponding to the AllSight surface area
-    """
-    m = np.zeros((size[1], size[0]))
-    m_center = (size[0] // 2, size[1] // 2)
-    m_radius = min(size[0], size[1]) // 2 - border
-    m = cv2.circle(m, m_center, m_radius, 255, -1)
-
-    m /= 255
-    m = m.astype(np.float32)
-    mask = np.stack([m, m, m], axis=2)
-    return mask
 
 
 class Renderer(tRenderer):
@@ -45,7 +22,7 @@ class Renderer(tRenderer):
     '''
 
     def __init__(self, width, height, background, config_path):
-        super().__init__(width, height, background, config_path, headless=True)
+        super().__init__(width, height, background, config_path, headless=False)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
         if calibration:
@@ -260,8 +237,8 @@ class Sensor(tSensor):
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)
 
-            mask = circle_mask(size=(480,480))
-            # mask = circle_mask()
+            # mask = circle_mask(size=(480,480))
+            mask = circle_mask()
 
             color[0][mask == 0] = 0
 
