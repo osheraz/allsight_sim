@@ -3,7 +3,7 @@
 ## Overview
 This package offers a simulation environment for a small 3D structured vision-based finger sensor called AllSight. It includes the integration of the AllSight model with the [TACTO](https://github.com/facebookresearch/tacto) API simulation, allowing for data collection and simulation of robotic in-hand manipulation scenarios. For more information refer to the corresponding [paper](https://arxiv.org/abs/2307.02928)
 
-###  (Update Sep. 20, 2023)  Over the next few weeks (under review), the codebase for [SightGAN](https://arxiv.org/abs/2309.10409) will be released. 
+###  (Update Sep. 20, 2023)  Over the next few weeks, the codebase for [SightGAN](https://arxiv.org/abs/2309.10409) will be released (under review). 
 
 ---
 ## Installation
