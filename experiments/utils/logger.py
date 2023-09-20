@@ -2,10 +2,10 @@ import cv2
 import os
 from datetime import datetime
 import json
+import deepdish as dd
 
 import numpy as np
 import pathlib
-
 
 pc_name = os.getlogin()
 
@@ -15,24 +15,24 @@ class Log:
         self.dirName = dirName
         self.id = id
         self.dataList = []
-        self.batch_size = 100
+        self.batch_size = 5
         os.makedirs(dirName, exist_ok=True)
 
     def save(
             self,
-            tactileColorL,
-            tactileColorR,
-            tactileDepthL,
-            tactileDepthR,
+            colorL, colorR, colorB,
+            depthL, depthR, depthB,
             gripForce,
             normalForce,
             label,
     ):
         data = {
-            "tactileColorL": tactileColorL,
-            "tactileColorR": tactileColorR,
-            "tactileDepthL": tactileDepthL,
-            "tactileDepthR": tactileDepthR,
+            "colorL": colorL,
+            "colorR": colorR,
+            "colorB": colorB,
+            "depthL": depthL,
+            "depthR": depthR,
+            "depthB": depthB,
             "gripForce": gripForce,
             "normalForce": normalForce,
             "label": label,
@@ -42,11 +42,9 @@ class Log:
 
         if len(self.dataList) >= self.batch_size:
             id_str = "{:07d}".format(self.id)
-            # os.makedirs(outputDir, exist_ok=True)
             outputDir = os.path.join(self.dirName, id_str)
             os.makedirs(outputDir, exist_ok=True)
 
-            # print(newData["tactileColorL"][0].shape)
             newData = {k: [] for k in data.keys()}
             for d in self.dataList:
                 for k in data.keys():
@@ -55,7 +53,7 @@ class Log:
             for k in data.keys():
                 fn_k = "{}_{}.h5".format(id_str, k)
                 outputFn = os.path.join(outputDir, fn_k)
-                # dd.io.save(outputFn, newData[k])
+                dd.io.save(outputFn, newData[k])
 
             self.dataList = []
             self.id += 1
@@ -63,7 +61,7 @@ class Log:
 
 class DataSimLogger():
 
-    def __init__(self,prefix, leds, indenter, save=True, save_depth=False):
+    def __init__(self, prefix, leds, indenter, save=True, save_depth=False):
 
         self.data_dict = {}
         self.img_press_dict = {}
@@ -73,38 +71,43 @@ class DataSimLogger():
         # Init of the dataset dir paths with the current day and time
         self.date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S")
         if prefix is not None:
-            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/{}_img_{}".format(leds, indenter,prefix, self.date)
+            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/{}_img_{}".format(leds, indenter,
+                                                                                                  prefix, self.date)
         else:
-            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/img_{}".format(leds, indenter, self.date)
+            self.dataset_path_images = "allsight_sim_dataset/clear/{}/images/{}/img_{}".format(leds, indenter,
+                                                                                               self.date)
         self.dataset_path_images_rgb = self.dataset_path_images
-        self.dataset_path_images_depth = os.path.join(self.dataset_path_images,"depth")
+        self.dataset_path_images_depth = os.path.join(self.dataset_path_images, "depth")
 
         if prefix is not None:
-            self.dataset_path_data = "allsight_sim_dataset/clear/{}/data/{}/{}_data_{}".format(leds, indenter,prefix, self.date)
+            self.dataset_path_data = "allsight_sim_dataset/clear/{}/data/{}/{}_data_{}".format(leds, indenter, prefix,
+                                                                                               self.date)
         else:
             self.dataset_path_data = "allsight_sim_dataset/clear/{}/data/{}/data_{}".format(leds, indenter, self.date)
-        
 
         if save:
-            if not os.path.exists(self.dataset_path_images_rgb): pathlib.Path(self.dataset_path_images_rgb).mkdir(parents=True, exist_ok=True)
-            
+            if not os.path.exists(self.dataset_path_images_rgb): pathlib.Path(self.dataset_path_images_rgb).mkdir(
+                parents=True, exist_ok=True)
+
             if self.save_depth:
-                if not os.path.exists(self.dataset_path_images_depth): pathlib.Path(self.dataset_path_images_depth).mkdir(parents=True, exist_ok=True)
+                if not os.path.exists(self.dataset_path_images_depth): pathlib.Path(
+                    self.dataset_path_images_depth).mkdir(parents=True, exist_ok=True)
 
-            if not os.path.exists(self.dataset_path_data): pathlib.Path(self.dataset_path_data).mkdir(parents=True, exist_ok=True)
+            if not os.path.exists(self.dataset_path_data): pathlib.Path(self.dataset_path_data).mkdir(parents=True,
+                                                                                                      exist_ok=True)
 
-    def append(self,prefix, i, q, frame, depth, trans, rot, ft,contact_px, count):
+    def append(self, prefix, i, q, frame, depth, trans, rot, ft, contact_px, count):
 
         if prefix is not None:
-            img_id = '{}_image{}_{}_{:.2f}.jpg'.format(prefix,count, i, q)
+            img_id = '{}_image{}_{}_{:.2f}.jpg'.format(prefix, count, i, q)
         else:
             img_id = 'image{}_{}_{:.2f}.jpg'.format(count, i, q)
         img_path = os.path.join(self.dataset_path_images_rgb, img_id)
 
         if prefix is not None:
-            depth_id = '{}_depth{}_{}_{:.2f}.jpg'.format(prefix,count , i, q)
+            depth_id = '{}_depth{}_{}_{:.2f}.jpg'.format(prefix, count, i, q)
         else:
-            depth_id = 'depth{}_{}_{:.2f}.jpg'.format(count , i, q)
+            depth_id = 'depth{}_{}_{:.2f}.jpg'.format(count, i, q)
         depth_path = os.path.join(self.dataset_path_images_depth, depth_id)
 
         self.img_press_dict[img_path] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -132,7 +135,7 @@ class DataSimLogger():
             for key in self.depth_press_dict.keys():
                 if not cv2.imwrite(key, self.depth_press_dict[key]):
                     raise Exception("Could not write image")
-                
+
         # Clear the dict
         self.img_press_dict.clear()
         self.depth_press_dict.clear()

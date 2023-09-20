@@ -163,6 +163,7 @@
     <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.05948851735" soft_upper_limit="2.05948851735"/>
     <dynamics damping="0.5"/>
   </joint>
+
   <link name="iiwa_link_4">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0.067 0.034"/>
@@ -184,6 +185,7 @@
       <material name="White"/>
     </collision>
   </link>
+
   <!-- joint between link_4 and link_5 -->
   <joint name="iiwa_joint_5" type="revolute">
     <parent link="iiwa_link_4"/>
@@ -194,6 +196,7 @@
     <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
     <dynamics damping="0.5"/>
   </joint>
+
   <link name="iiwa_link_5">
     <inertial>
       <origin rpy="0 0 0" xyz="0.0001 0.021 0.076"/>
@@ -215,6 +218,7 @@
       <material name="White"/>
     </collision>
   </link>
+
   <!-- joint between link_5 and link_6 -->
   <joint name="iiwa_joint_6" type="revolute">
     <parent link="iiwa_link_5"/>
@@ -225,6 +229,7 @@
     <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.05948851735" soft_upper_limit="2.05948851735"/>
     <dynamics damping="0.5"/>
   </joint>
+
   <link name="iiwa_link_6">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0.0006 0.0004"/>
@@ -246,6 +251,7 @@
       <material name="White"/>
     </collision>
   </link>
+
   <!-- joint between link_6 and link_7 -->
   <joint name="iiwa_joint_7" type="revolute">
     <parent link="iiwa_link_6"/>
@@ -256,6 +262,7 @@
     <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-3.01941960595" soft_upper_limit="3.01941960595"/>
     <dynamics damping="0.5"/>
   </joint>
+
   <link name="iiwa_link_7">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0.02"/>
@@ -277,83 +284,24 @@
       <material name="Grey"/>
     </collision>
   </link>
+
   <!-- joint between link_7 and ee_tip -->
   <joint name="iiwa_gripper_tip_joint" type="fixed">
     <parent link="iiwa_link_7"/>
     <child link="iiwa_gripper_tip"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.18"/>
   </joint>
+
   <link name="iiwa_gripper_tip">
      <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
        <mass value="0.0"/>
-       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+       <inertia ixx="0.0" ixy="0" ixz="0" iyy="0.0" iyz="0" izz="0.0"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <box size="0.005 0.005 0.005"/>
-      </geometry>
-      <material name="TransGreen"/>
-    </visual>
-  </link>
-
-  <!-- joint between link_7 and hand_cam_origin -->
-  <joint name="iiwa_hand_cam_joint" type="fixed">
-    <parent link="iiwa_link_7"/>
-    <child link="iiwa_hand_cam_origin"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.22 0.0 -0.1"/>
-  </joint>
-  <link name="iiwa_hand_cam_origin">
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.0"/>
-      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <box size="0.01 0.01 0.01"/>
-      </geometry>
-      <material name="Transparent"/>
-    </visual>
-  </link>
-
-  <!-- joint for visualising gripper tip -->
-  <joint name="iiwa_gripper_mocap_joint1" type="fixed">
-    <parent link="iiwa_gripper_tip"/>
-    <child link="iiwa_mocap_link_1"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-  </joint>
-  <link name="iiwa_mocap_link_1">
-     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-       <mass value="0.0"/>
-       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <box size="1.0 0.005 0.005"/>
-      </geometry>
-      <material name="TransGreen"/>
-    </visual>
-  </link>
-  <joint name="iiwa_gripper_mocap_joint2" type="fixed">
-    <parent link="iiwa_gripper_tip"/>
-    <child link="iiwa_mocap_link_2"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-  </joint>
-  <link name="iiwa_mocap_link_2">
-     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-       <mass value="0.0"/>
-       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <box size="0.005 1.0 0.005"/>
       </geometry>
       <material name="TransGreen"/>
     </visual>
@@ -381,7 +329,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0.03 0 0."/>
       <mass value="0.7"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <collision>
       <origin rpy="1.57079632679 0 -1.57079632679" xyz="0.06 0.017 0"/>
@@ -392,7 +340,7 @@
   </link>
 
   <link name="finger_1_1">
-        <contact>
+     <contact>
         <lateral_friction value="1"/>
         <rolling_friction value="0.1"/>
         <contact_cfm value="0.0"/>
@@ -401,7 +349,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
   <material name="coolgrey" >
@@ -431,7 +379,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
   <material name="lightgrey" >
@@ -451,21 +399,11 @@
   </link>
 
   <link name="finger_1_3">
-      <contact>
-        <friction_anchor/>
-        <stiffness value="30000.0"/>
-        <damping value="1000.0"/>
-        <lateral_friction value="1"/>
-        <rolling_friction value="0.1"/>
-        <contact_cfm value="0.0"/>
-        <contact_erp value="1.0"/>
-      </contact>
-
       <inertial>
       <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
       <geometry>
@@ -492,7 +430,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
   <material name="coolgrey" >
@@ -522,7 +460,7 @@
       <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
   <material name="lightgrey" >
@@ -542,20 +480,12 @@
   </link>
 
   <link name="finger_2_3">
-      <contact>
-        <friction_anchor/>
-        <stiffness value="30000.0"/>
-        <damping value="1000.0"/>
-        <lateral_friction value="1"/>
-        <rolling_friction value="0.1"/>
-        <contact_cfm value="0.0"/>
-        <contact_erp value="1.0"/>
-      </contact>
+
       <inertial>
       <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
       <geometry>
@@ -583,7 +513,7 @@
       <!--                  <origin xyz="-0.005 0.03 0" rpy="0 0 0"/>-->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
   <material name="lightgrey" >
@@ -603,20 +533,11 @@
   </link>
 
   <link name="finger_3_3">
-      <contact>
-        <friction_anchor/>
-        <stiffness value="30000.0"/>
-        <damping value="1000.0"/>
-        <lateral_friction value="1"/>
-        <rolling_friction value="0.1"/>
-        <contact_cfm value="0.0"/>
-        <contact_erp value="1.0"/>
-      </contact>
 
       <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
       <geometry>
@@ -639,25 +560,16 @@
     <origin rpy="3.14159265359 0 0" xyz="-0.003 -0.034 -0.027"/>
     <parent link="gripper_base_link"/>
     <child link="finger_1_1"/>
-    <limit effort="10" lower="0" upper="1.57079632679" velocity="10"/>
+    <limit effort="100" lower="0" upper="1.57079632679" velocity="2"/>
     <axis xyz="1 0 0"/>
     <dynamics friction="10" damping="10" />
   </joint>
 
   <joint name="finger_1_1_to_finger_1_2" type="revolute">
-    <origin rpy="0 0 0" xyz="-0.02 +0.00725 0"/>
+    <origin rpy="0 0 0" xyz="-0.02 0.00725 0"/>
     <parent link="finger_1_1"/>
     <child link="finger_1_2"/>
-    <limit effort="10.0" lower="-0.1" upper="3.0" velocity="10"/>
-    <axis xyz="0 0 1"/>
-    <dynamics friction="10" damping="10" />
-  </joint>
-
-  <joint name="finger_1_2_to_finger_1_3" type="revolute">
-    <origin rpy="0 0 1.57079632679" xyz="0.000800 0.062 0"/>
-    <parent link="finger_1_2"/>
-    <child link="finger_1_3"/>
-    <limit effort="10.0" lower="0.0" upper="1.27" velocity="10"/>
+    <limit effort="100" lower="-0.1" upper="3.0" velocity="2"/>
     <axis xyz="0 0 1"/>
     <dynamics friction="10" damping="10" />
   </joint>
@@ -666,44 +578,53 @@
     <origin rpy="3.14159265359 0 0" xyz="-0.003 -0.034 0.027"/>
     <parent link="gripper_base_link"/>
     <child link="finger_2_1"/>
-    <limit effort="10" lower="-1.57079632679" upper="0" velocity="10"/>
+    <limit effort="100" lower="-1.57079632679" upper="0" velocity="2"/>
     <axis xyz="1 0 0"/>
     <dynamics friction="10" damping="10" />
   </joint>
 
   <joint name="finger_2_1_to_finger_2_2" type="revolute">
-    <origin rpy="0 0 0" xyz="-0.02 +0.00725 0"/>
+    <origin rpy="0 0 0" xyz="-0.02 0.00725 0"/>
     <parent link="finger_2_1"/>
     <child link="finger_2_2"/>
-    <limit effort="10" lower="-0.1" upper="3.0" velocity="10"/>
+    <limit effort="100" lower="-0.1" upper="3.0" velocity="2"/>
     <axis xyz="0 0 1"/>
+    <dynamics friction="10" damping="10" />
+  </joint>
+
+      <joint name="base_to_finger_3_2" type="revolute">
+    <origin rpy="0 0 0" xyz="-0.023 0.045 0.000000"/>
+    <parent link="gripper_base_link"/>
+    <child link="finger_3_2"/>
+    <limit effort="100" lower="-0.1" upper="3.0" velocity="2"/>
+    <axis xyz="0 0 1"/>
+    <dynamics friction="10" damping="10" />
+  </joint>
+
+  <joint name="finger_1_2_to_finger_1_3" type="revolute">
+    <origin rpy="1.57079632679 0 1.57079632679" xyz="0.000800 0.072 0"/>
+    <parent link="finger_1_2"/>
+    <child link="finger_1_3"/>
+    <limit effort="100" lower="0.0" upper="0.5" velocity="2"/>
+    <axis xyz="0 1 0"/>
     <dynamics friction="10" damping="10" />
   </joint>
 
   <joint name="finger_2_2_to_finger_2_3" type="revolute">
-    <origin rpy="0 0 1.57079632679" xyz="0.000800 0.062 0"/>
+    <origin rpy="1.57079632679 0 1.57079632679" xyz="0.000800 0.072 0"/>
     <parent link="finger_2_2"/>
     <child link="finger_2_3"/>
-    <limit effort="10" lower="0.0" upper="1.27" velocity="10"/>
-    <axis xyz="0 0 1"/>
-    <dynamics friction="10" damping="10" />
-  </joint>
-
-  <joint name="base_to_finger_3_2" type="revolute">
-    <origin rpy="0 0 0" xyz="-0.023 0.045 0.000000"/>
-    <parent link="gripper_base_link"/>
-    <child link="finger_3_2"/>
-    <limit effort="10" lower="-0.1" upper="3.0" velocity="10"/>
-    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="0.0" upper="0.5" velocity="2"/>
+    <axis xyz="0 1 0"/>
     <dynamics friction="10" damping="10" />
   </joint>
 
   <joint name="finger_3_2_to_finger_3_3" type="revolute">
-    <origin rpy="0 0 1.57079632679" xyz="0.000800 0.062 0"/>
+    <origin rpy="1.57079632679 0 1.57079632679" xyz="0.000800 0.072 0"/>
     <parent link="finger_3_2"/>
     <child link="finger_3_3"/>
-    <limit effort="10" lower="0.0" upper="1.27" velocity="10"/>
-    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="0.0" upper="0.5" velocity="2"/>
+    <axis xyz="0 1 0"/>
     <dynamics friction="10" damping="10" />
   </joint>
 

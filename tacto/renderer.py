@@ -61,6 +61,7 @@ def matrix2trans(matrix):
 #     return pose
 
 DEBUG = False
+
 class Renderer:
     def __init__(self, width, height, background, config_path, headless=False):
         """

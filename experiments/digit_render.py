@@ -1,4 +1,4 @@
-# Code adopted from MidasTouch Paper, todo @ add licence
+# Copyright (c) Meta Platforms, Inc. and affiliates.
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -8,14 +8,17 @@ TACTO rendering class
 """
 
 from os import path as osp
+
+import matplotlib.pyplot as plt
 import numpy as np
-from object_loader import object_loader
+from contrib.object_loader import object_loader
 import tacto
 from tacto.renderer import euler2matrix
 import cv2
 from omegaconf import DictConfig
-from pose import (
+from contrib.pose import (
     pose_from_vertex_normal,
+    tf_to_xyzquat_numpy,
 )
 from scipy.spatial.transform import Rotation as R
 
@@ -25,10 +28,10 @@ import hydra
 from omegaconf import DictConfig
 import random
 
-DEBUG = False
+DEBUG = True
 
 
-class allsight_renderer:
+class digit_renderer:
     def __init__(
             self,
             cfg: DictConfig,
@@ -43,23 +46,17 @@ class allsight_renderer:
 
         if randomize:
             bg_id = random.randint(0, 9)
-
-        import os
-        leds = 'rrrgggbbb'
-
-        PATH = os.path.join(os.path.dirname(__file__), "../")
-        bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_{leds}.jpg"))
-        conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_{leds}.yml")
-
         # Create renderer
+        import os
+        bg = cv2.imread(os.path.join(os.path.join(os.path.dirname(__file__), "../"), f"experiments/conf/ref/ref_frame_rrrgggbbb3.jpg"))
+
         self.renderer = tacto.Renderer(
             width=cfg.width,
             height=cfg.height,
             background=bg,
-            config_path=conf_path,
-            headless=False,
+            config_path=tacto.get_digit_shadow_config_path(),
+            headless=True,
         )
-
         self.cam_dist = cfg.cam_dist
         self.pixmm = cfg.pixmm
 
@@ -314,6 +311,9 @@ class allsight_renderer:
         Tn[:, :3, :3], Tn[:, :3, 3], Tn[:, 3, 3] = Rn, tn, 1
 
         gelposes_meas = gelposes @ Tn
+        gelposes_meas = tf_to_xyzquat_numpy(gelposes_meas)
+        gelposes = tf_to_xyzquat_numpy(gelposes)
+        camposes = tf_to_xyzquat_numpy(camposes)
 
         return heightmaps, contactMasks, images, camposes, gelposes, gelposes_meas
 
@@ -366,16 +366,16 @@ class allsight_renderer:
         return heightmaps, contactMasks, images, camposes, gelposes
 
 
-@hydra.main(config_path="conf", config_name="experiment")
+@hydra.main(config_path="conf", config_name="test")
 def main(cfg: DictConfig) -> None:
     import os
+
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-
     obj_model = 'cube'
     obj_path = f"../assets/objects/{obj_model}.obj"
-    press_depth = 0.000  # in meter
-    tac_render = allsight_renderer(cfg.render, obj_path, randomize=True)
+
+    press_depth = 0.002  # in meter
+    tac_render = digit_renderer(cfg, obj_path, randomize=False)
 
     from PIL import Image
 
@@ -386,10 +386,12 @@ def main(cfg: DictConfig) -> None:
         tactile_img, height_map, contact_mask = tac_render.render()
 
         images.append(Image.fromarray(tactile_img))
-    images[0].save(
-        "augmentations.gif", save_all=True, append_images=images, duration=200, loop=0
-    )
+    # images[0].save(
+    #     "augmentations.gif", save_all=True, append_images=images, duration=200, loop=0
+    # )
+        plt.imshow(tactile_img)
 
+        plt.pause(0.1)
 
 if __name__ == "__main__":
     main()

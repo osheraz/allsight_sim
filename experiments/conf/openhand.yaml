@@ -33,3 +33,4 @@ object_control_panel:
   slider_params:
     position_low: [-0.3, -0.3, 0]
     position_high: [0.3, 0.3, 0.3]
+

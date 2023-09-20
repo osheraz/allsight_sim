@@ -45,7 +45,7 @@ class Renderer(tRenderer):
     '''
 
     def __init__(self, width, height, background, config_path):
-        super().__init__(width, height, background, config_path, headless=True)
+        super().__init__(width, height, background, config_path, headless=False)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
         if calibration:
@@ -264,7 +264,6 @@ class Sensor(tSensor):
             # mask = circle_mask()
 
             color[0][mask == 0] = 0
-
 
             colors += color
             depths += depth

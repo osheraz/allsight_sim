@@ -81,7 +81,7 @@ class Sensor:
         :param cid: Int
         """
         self.cid = cid
-        self.renderer = Renderer(width, height, background, config_path)
+        self.renderer = Renderer(width, height, background, config_path, headless=True)
 
         self.visualize_gui = visualize_gui
         self.show_depth = show_depth

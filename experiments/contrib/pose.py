@@ -11,11 +11,23 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from typing import List, Tuple
+import torch
+import theseus as th
 
 
 
+def tf_to_xyzquat_numpy(pose: torch.Tensor) -> torch.Tensor:
+    """
+    convert 4 x 4 transformation matrices to [x, y, z, qx, qy, qz, qw]
+    """
+    pose = np.atleast_3d(pose)
 
+    r = R.from_matrix(np.array(pose[:, 0:3, 0:3]))
+    q = r.as_quat()  # qx, qy, qz, qw
+    t = pose[:, :3, 3]
+    xyz_quat = np.concatenate((t, q), axis=1)
 
+    return xyz_quat  # (N, 7)
 
 def pose_from_vertex_normal(
     vertices: np.ndarray, normals: np.ndarray, shear_mag: float, delta: np.ndarray
