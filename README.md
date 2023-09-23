@@ -5,6 +5,11 @@ This package offers a simulation environment for a small 3D structured vision-ba
 
 ###  (Update Sep. 20, 2023)  Over the next few weeks, the codebase for [SightGAN](https://arxiv.org/abs/2309.10409) will be released (under review). 
 
+<div align="center">
+  <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/allsight_demo_gan.gif?raw=true"
+  width="60%">
+</div>
+
 ---
 ## Installation
 
@@ -31,17 +36,26 @@ pip install -r requirements/requirements.txt
 
 - [experiments/00_demo_pybullet_allsight.py](experiments/00_demo_pybullet_allsight.py): rendering RGB and Depth readings with Allsight sensor.
 
-![](website/gif/allsight_demo.gif)
 
-![](website/gif/allsight_demo_rect.gif)
+<div align="center">
+  <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/allsight_demo.gif?raw=true"
+  width="60%">
+</div>
 
+<div align="center">
+  <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/allsight_demo_rect.gif?raw=true"
+  width="60%">
+</div>
 
 - [experiments/01_collect_data_sim.py](experiments/01_collect_data_sim.py): rendering RGB and Depth readings with Allsight sensor.
 
-![](website/gif/allsight_collect_data.gif)
+<div align="center">
+  <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/allsight_collect_data.gif?raw=true"
+  width="60%">
+</div>
 
 
-NOTE: Adjust simulation parameters on [experiments/conf](experiments/conf) folder. 
+#### NOTE: Adjust simulation parameters on [experiments/conf](experiments/conf) folder. 
 
 ---
 
