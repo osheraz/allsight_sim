@@ -14,18 +14,18 @@ show_detect: True # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: cube # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle | hexagon | square
+  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle | hexagon | square
   leds: white # white | rrrgggbbb | rgbrgbrgb
-  sensor_id: 12 # for white: 12 - 19  
+  sensor_id: 16 # for white: 12 - 19  
               # for rrrgggbbb: 3
               # for rgbrgbrgb: 0 
 
 # used only for collect_data
   method: press
-  start_from: 25
+  start_from: 26
   up_to: 30
   gel: clear
-  angle_split: 14
+  angle_split: 30
   start_random_angle: True
   cyl_split: 38
   top_split: 4
@@ -34,6 +34,7 @@ summary:
   save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 
 sim2real:
-  enable: False
-  model_G: ../experiments/models/GAN/170_net_G_B.pth # path for the pth model of the generator
+  enable: True
+  device: cuda # cpu | cuda
+  model_G: ../experiments/models/GAN/latest_net_G_B.pth # path for the pth model of the generator
   model_R: # path for the pth model of the regressor
