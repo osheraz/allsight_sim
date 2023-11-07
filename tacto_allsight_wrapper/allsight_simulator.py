@@ -16,7 +16,6 @@ from typing import Any
 from omegaconf import DictConfig
 import shutup;
 import torch
-from .util.util import tensor2im
 
 shutup.please()
 
@@ -33,7 +32,8 @@ from experiments.utils.geometry import rotation_matrix, concatenate_matrices, co
     convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
 from transformations import translation_matrix, translation_from_matrix, quaternion_matrix, quaternion_from_matrix
-from .util.util import foreground,inv_foreground, circle_mask
+from .util.util import tensor2im, foreground,inv_foreground, circle_mask
+
 log = logging.getLogger(__name__)
 origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
@@ -167,11 +167,15 @@ class Simulator:
             color, depth = self.allsight.render()
             if self.is_sim2real:
                 for i in range(len(color)):
-                    # color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                    # colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
                     
-                    color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
-                    colors_gan.append(tensor2im(self.model_G(color_tensor))*circle_mask())
+                    # SightGAN
+                    color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
+                    colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
+                    
+                    
+                    # GAN on the fuul rgb 
+                    # color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
+                    # colors_gan.append(tensor2im(self.model_G(color_tensor))*circle_mask())
 
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
@@ -181,6 +185,7 @@ class Simulator:
                                     contact_px=contact_px)
 
         self.t.stop()
+        
     def collect_data(self, conf):
 
         # start the simulation thread
@@ -273,10 +278,16 @@ class Simulator:
                 # self.allsight.updateGUI(color, depth)
                 if self.is_sim2real:
                     for i in range(len(color)):
+
+                            # SightGAN
                             color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
                             colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
 
-                
+                            # GAN on the fuul rgb 
+                            # color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
+                            # colors_gan.append(tensor2im(self.model_G(color_tensor))*circle_mask())
+
+
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
                 self.allsight.updateGUI(color,
