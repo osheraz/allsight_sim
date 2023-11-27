@@ -260,11 +260,10 @@ class Sensor(tSensor):
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)
 
-            mask = circle_mask(size=(480,480))
+            mask = circle_mask(size=(224,224))
             # mask = circle_mask()
 
             color[0][mask == 0] = 0
-
 
             colors += color
             depths += depth
@@ -332,7 +331,15 @@ class Sensor(tSensor):
 
         return [result]
 
-    def updateGUI(self, colors, depths, colors_gan=[], contact_px=None):
+    def _subtract_bg(self, img1, img2, offset=0.5):
+
+        img1 = np.int32(img1)
+        img2 = np.int32(img2)
+        diff = img1 - img2
+        diff = diff / 255.0 + offset
+        return diff
+
+    def updateGUI(self, colors, depths, colors_gan=[], contact_px=None, bg=None):
             """
             Update images for visualization
             """
@@ -341,16 +348,22 @@ class Sensor(tSensor):
 
             # concatenate colors horizontally (axis=1)
             color = np.concatenate(colors, axis=1)
-            
+
+            if len(colors_gan)!=0:
+                color_gan = np.concatenate(colors_gan, axis=1)
+
+            if bg is not None:
+                mask = circle_mask()
+                color = self._subtract_bg(color, bg[0]) * mask
+                if len(colors_gan) != 0:
+                    color_gan = self._subtract_bg(color_gan, bg[0]) * mask
+
             if contact_px is not None:
                 [x,y,r] = contact_px
                 # Draw the circle on the original image
                 cv2.circle(color, (x, y), int(r*2.5), (0, 255, 0), 4)
                 # Draw a small circle at the center of the detected circle
                 cv2.circle(color, (x, y), 2, (0, 0, 255), 3)
-            
-            if len(colors_gan)!=0: 
-                color_gan = np.concatenate(colors_gan, axis=1)
 
             if self.show_depth:
                 # concatenate depths horizontally (axis=1)
@@ -362,13 +375,12 @@ class Sensor(tSensor):
                 else:
                     color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
                 cv2.imshow(
-                    "color and depth", cv2.cvtColor(color_n_depth, cv2.COLOR_RGB2BGR)
+                    "color and depth", color_n_depth
                 )
             else:
                 cv2.imshow("color", cv2.cvtColor(color, cv2.COLOR_RGB2BGR))
 
             cv2.waitKey(1)
-
 
     def detect_contact(self,depths)->list:
 

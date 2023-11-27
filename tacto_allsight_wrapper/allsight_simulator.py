@@ -151,21 +151,29 @@ class Simulator:
         # show panel
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
+        from time import time
+        bg_color, _ = self.allsight.render()
 
         while True:
             colors_gan = []
             contact_px = None
             color, depth = self.allsight.render()
+
             if self.is_sim2real:
+
                 for i in range(len(color)):
+                    st = time()
                     color_tensor = self.transform(color[i]).unsqueeze(0)
                     colors_gan.append(tensor2im(self.model_G(color_tensor)))
+                    print(time() - st)
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
+
             self.allsight.updateGUI(color,
                                     depth,
                                     colors_gan=colors_gan,
-                                    contact_px=contact_px)
+                                    contact_px=contact_px,
+                                    bg=bg_color)
 
         self.t.stop()
 
