@@ -12,7 +12,15 @@ Additionally, we plan to provide extensive documentation for this repository, st
   width="60%">
 </div>
 
+###  Update Nov. 20, 2023 
+IsaacGym support is added, will be released in the following weeks.
+
+<div align="center">
+  <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/isaac.gif?raw=true"
+  width="60%">
+</div>
 ---
+
 ## Installation
 
 The code has been tested on:
