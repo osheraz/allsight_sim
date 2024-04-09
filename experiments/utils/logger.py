@@ -59,6 +59,7 @@ class DataSimLogger():
         self.depth_press_dict[depth_path] = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB)
 
         contact_px = -1 if contact_px is None else contact_px
+
         self.data_dict[img_id] = {'frame': img_path,
                                   'depth': depth_path,
                                   'pose_transformed': (trans, rot),

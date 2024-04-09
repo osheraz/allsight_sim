@@ -19,7 +19,7 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
     return pose
 
 
-def circle_mask(size=(224, 224), border=0):
+def circle_mask(size=(480, 480), border=0):
     """
         used to filter center circular area of a given image,
         corresponding to the AllSight surface area
@@ -260,7 +260,7 @@ class Sensor(tSensor):
                 depth_map = np.concatenate(list(map(self._depth_to_color, depth)), axis=1)
                 color = self._blur_contact(color, depth_map)
 
-            mask = circle_mask(size=(224,224))
+            mask = circle_mask(size=(480, 480))
             # mask = circle_mask()
 
             color[0][mask == 0] = 0
@@ -368,9 +368,12 @@ class Sensor(tSensor):
             if self.show_depth:
                 # concatenate depths horizontally (axis=1)
                 depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
-                
+                if bg is not None:
+                    color = cv2.cvtColor((color * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
+                else:
+                    color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
                 # concatenate the resulting two images vertically (axis=0)
-                if len(colors_gan)==0:
+                if len(colors_gan) == 0:
                     color_n_depth = np.concatenate([color, depth], axis=0)
                 else:
                     color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
@@ -378,7 +381,7 @@ class Sensor(tSensor):
                     "color and depth", color_n_depth
                 )
             else:
-                cv2.imshow("color", cv2.cvtColor(color, cv2.COLOR_RGB2BGR))
+                cv2.imshow("color", color)
 
             cv2.waitKey(1)
 

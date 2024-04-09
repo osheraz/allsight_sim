@@ -6,8 +6,8 @@
 #     dir: .././
 
 tacto:
-  width: 224 # 480 | 224
-  height: 224 # 480 | 224 for the gan
+  width: 480 # 480 | 224
+  height: 480 # 480 | 224 for the gan
   visualize_gui: True
 
 allsight:

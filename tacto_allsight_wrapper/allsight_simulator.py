@@ -152,7 +152,7 @@ class Simulator:
         self.panel = px.gui.PoseControlPanel(self.obj, **self.object_control_panel)
         self.panel.start()
         from time import time
-        bg_color, _ = self.allsight.render()
+        bg_color, depth_bg = self.allsight.render()
 
         while True:
             colors_gan = []
@@ -166,6 +166,7 @@ class Simulator:
                     color_tensor = self.transform(color[i]).unsqueeze(0)
                     colors_gan.append(tensor2im(self.model_G(color_tensor)))
                     print(time() - st)
+
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
 
@@ -186,7 +187,7 @@ class Simulator:
         self.cyl_split = conf.cyl_split
         self.top_split = conf.top_split
         self.angle_split = conf.angle_split
-
+        contact_px = None
         # Create constraints
         '''
         due to limitation of pybullet orienation handling,
@@ -215,7 +216,7 @@ class Simulator:
                                     save_depth=conf.save_depth)
 
         # take ref frame
-        ref_frame, _ = self.allsight.render()
+        ref_frame, depth_bg = self.allsight.render()
 
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
 
@@ -273,10 +274,12 @@ class Simulator:
 
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
+
                 self.allsight.updateGUI(color,
                                         depth,
                                         colors_gan=colors_gan,
-                                        contact_px=contact_px)
+                                        contact_px=contact_px,
+                                        bg=ref_frame)
 
                 time.sleep(0.01)
 
@@ -294,6 +297,7 @@ class Simulator:
 
                     colors_gan = []
                     color, depth = self.allsight.render()
+
                     # self.allsight.updateGUI(color, depth)
                     if self.is_sim2real:
                         for i in range(len(color)):
@@ -305,7 +309,8 @@ class Simulator:
                     self.allsight.updateGUI(color,
                                             depth,
                                             colors_gan=colors_gan,
-                                            contact_px=contact_px)
+                                            contact_px=contact_px,
+                                            bg=ref_frame)
                     pyb.stepSimulation()
                     time.sleep(0.05)
 

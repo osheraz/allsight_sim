@@ -34,7 +34,7 @@ sensor:
       inner: 0.1
       outer: 0.5
 
-    shadow: False # enable shadow if True; (based on testing, it requires SpotLight for rendering shadows)
+    shadow: True # enable shadow if True; (based on testing, it requires SpotLight for rendering shadows)
     # Light position can be expressed in:
     # - polar coordinates: r and theta. (in y-z plane), and x coordinate of the plane
     # - cartesian coordinates: xyz
@@ -53,7 +53,7 @@ sensor:
   noise:
     color:
       mean: 0
-      std: 0
+      std: 3
 
   force:
     enable: True # flag for enable force feedback. When enabled, the larger normal force is, the closer object is adjusted to the sensor.  ---TODO---
