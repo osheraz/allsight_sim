@@ -332,34 +332,14 @@ class Simulator:
                 push_point_start, push_point_end = self.get_push_point_by_index(0, i)
 
                 pyb.changeConstraint(self.cid,
-                                     jointChildPivot=push_point_start[0],
-                                     jointChildFrameOrientation=push_point_start[1],
-                                     maxForce=300)
-                # pyb.stepSimulation()
+                                    jointChildPivot=push_point_start[0],
+                                    jointChildFrameOrientation=push_point_start[1],
+                                    maxForce=300)
 
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
                 colors_gan = []
                 color, depth = self.allsight.render()
-                
-                
-                ## depth, contact_px = cv_obj_detect(depth)
-                # self.allsight.updateGUI(color, depth)
-                # if self.is_sim2real:
-                #     for i in range(len(color)):
 
-                #             # SightGAN
-                #             color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                #             colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
-                            
-                #             if self.show_contact_px:
-                #                 contact_px = self.allsight.detect_contact(depth)
-                
-                
-                #             self.allsight.updateGUI(color,
-                #                                     depth,
-                #                                     colors_gan=colors_gan,
-                #                                     contact_px=contact_px)
-                # else:
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
                 
@@ -392,22 +372,10 @@ class Simulator:
 
                     colors_gan = []
                     color, depth = self.allsight.render()
-                    # self.allsight.updateGUI(color, depth)
-                    # if self.is_sim2real:
-                    #     for i in range(len(color)):
-                    #         color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                    #         colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
-                    #         if self.show_contact_px:
-                    #             contact_px = self.allsight.detect_contact(depth)
-                    #         self.allsight.updateGUI(color,
-                    #                                 depth,
-                    #                                 colors_gan=colors_gan,
-                    #                                 contact_px=contact_px)
-                    
-                        
-                    # else:
+
                     if self.show_contact_px:
                         contact_px = self.allsight.detect_contact(depth)
+
                     self.allsight.updateGUI(color,
                                             depth,
                                             colors_gan=colors_gan,
