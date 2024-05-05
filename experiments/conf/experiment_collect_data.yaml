@@ -25,16 +25,16 @@ summary:
   start_from: 26
   up_to: 30
   gel: clear
-  angle_split: 30
+  angle_split: 2
   start_random_angle: True
   cyl_split: 38
   top_split: 4
   save: True
-  save_depth: False
+  save_depth: True
   save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 
 sim2real:
   enable: True
   device: cuda # cpu | cuda
-  model_G: ../experiments/models/GAN/latest_net_G_B.pth # path for the pth model of the generator
+  model_G: ../experiments/models/GAN/latest_net_G_B_95_all.pth # path for the pth model of the generator
   model_R: # path for the pth model of the regressor

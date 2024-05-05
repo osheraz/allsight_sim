@@ -10,7 +10,6 @@ scipy
 pybulletX >= 0.4.1
 shutup
 networkx == 2.2
-transformations == 2022.9.26
 torch
 
 # Need a specific version of PyOpenGL (forked & modified by mmatl) for pyrender

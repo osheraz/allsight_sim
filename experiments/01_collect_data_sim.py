@@ -12,7 +12,6 @@ import pybullet as p
 import math
 import pybulletX as px
 from omegaconf import DictConfig
-from utils.logger import DataSimLogger
 
 import numpy as np
 

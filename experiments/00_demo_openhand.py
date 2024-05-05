@@ -11,26 +11,27 @@ import pybullet as p
 import pybulletX as px
 
 log = logging.getLogger(__name__)
+# Initialize allsights
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
+# import allsight wrapper
+PATH = os.path.join(os.path.dirname(__file__), "../")
+import sys
+sys.path.insert(0, PATH)
+from tacto_allsight_wrapper.allsight_wrapper import Sensor
+
+import cv2
 
 # Load the config YAML file from examples/conf/allegro_hand.yaml
 @hydra.main(config_path="conf", config_name="openhand")
 def main(cfg):
-    # Initialize allsights
-    import os
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    from tacto_allsight_wrapper import allsight_wrapper
-
-    # import allsight wrapper
-    PATH = os.path.join(os.path.dirname(__file__), "../")
-    import sys
-    sys.path.insert(0, PATH)
-    import cv2
     bg = cv2.imread(os.path.join(PATH, f"experiments/conf/ref/ref_frame_white15.jpg"))
     conf_path = os.path.join(PATH, f"experiments/conf/sensor/config_allsight_white.yml")
 
-    allsights = allsight_wrapper.Sensor(
+    allsights = Sensor(
             **cfg.tacto, **{"config_path": conf_path},
             background=bg if True else None
         )

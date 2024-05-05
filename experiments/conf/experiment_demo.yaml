@@ -16,14 +16,14 @@ summary:
   name: demo
   indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle | hexagon | square
   leds: white # white | rrrgggbbb | rgbrgbrgb
-  sensor_id: 13 # for white: 12 - 19  
+  sensor_id: 16 # for white: 12 - 19  
                 # for rrrgggbbb: 3
                 # for rgbrgbrgb: 0 
 
 sim2real:
   enable: True
   device: cuda # cpu | cuda
-  model_G: ../experiments/models/GAN/latest_net_G_B_diff.pth # path for the pth model of the generator
+  model_G: ../experiments/models/GAN/latest_net_G_B_91_diff.pth # path for the pth model of the generator
   model_R: # path for the pth model of the regressor | future work
 
 

@@ -22,12 +22,13 @@ shutup.please()
 log = logging.getLogger(__name__)
 
 from tacto_allsight_wrapper import allsight_wrapper
+from tacto_allsight_wrapper.logger import DataSimLogger
 
 # import allsight wrapper
 PATH = os.path.join(os.path.dirname(__file__), "../")
 sys.path.insert(0, PATH)
 from experiments.models import networks, pre_process
-from experiments.utils.logger import DataSimLogger
+# from experiments.utils.logger import DataSimLogger
 from experiments.utils.geometry import rotation_matrix, concatenate_matrices, convert_quat_xyzw_to_wxyz, \
     convert_quat_wxyz_to_xyzw
 from scipy.spatial.transform import Rotation as R
@@ -41,7 +42,7 @@ origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 class Simulator:
 
     def __init__(self, cfg: DictConfig,
-                 ):
+                ):
 
         '''Simulator object for defining simulation scene with allsight sensor
 
@@ -72,6 +73,9 @@ class Simulator:
         self.is_sim2real = cfg.sim2real.enable
         
         dim = (224, 224)
+        self.transform = None
+        self.model_G = None
+        self.device = None
         if self.is_sim2real:
             self.device = cfg.sim2real.device
             opt = {
@@ -100,6 +104,16 @@ class Simulator:
         if cfg.summary.name == "collect_data":
             self.start_random_angle = cfg.summary.start_random_angle
 
+        #optical flow
+        self.prev_gray = cv2.cvtColor(np.zeros_like(self.ref_frame),cv2.COLOR_BGR2GRAY)
+        # Creates an image filled with zero 
+        # intensities with the same dimensions  
+        # as the frame 
+        self.mask = np.zeros_like(self.ref_frame)
+        # Sets image saturation to maximum 
+        self.mask[...,1] = 255
+        
+        
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
         """Create scene including visualizer gui and bodys
@@ -134,15 +148,31 @@ class Simulator:
 
         cfg.object.urdf_path = obj_urdf_path
         self.obj = px.Body(**cfg.object)
+
+
         # set start pose
         self.obj.set_base_pose([0, 0, 0.056])
         self.allsight.add_body(self.obj)
+        # Define a small sphere visual shape as a marker
+        marker_visual_shape_id = pyb.createVisualShape(shapeType=pyb.GEOM_SPHERE, radius=0.00075, rgbaColor=[1, 0, 0, 0])
 
+        # Add the marker at the origin of the object
+        # Note: You may need to adjust the framePosition to match the object's origin precisely
+        self.marker_id = pyb.createMultiBody(baseMass=0,
+                                    baseVisualShapeIndex=marker_visual_shape_id,
+                                    basePosition=[0, 0, 0.056],  # Position of the marker
+                                    useMaximalCoordinates=True)
+        
+        
         # camera body
         self.allsight.add_camera(self.body.id, [-1])
 
         # load control panel config
         self.object_control_panel = cfg.object_control_panel
+        
+        
+
+        
 
     def start(self):
         '''Start the simulation thread
@@ -164,7 +194,30 @@ class Simulator:
         while True:
             colors_gan = []
             contact_px = None
+            
             color, depth = self.allsight.render()
+            
+            # # Converts each frame to grayscale - we previously  
+            # # only converted the first frame to grayscale 
+            # gray = depth[0].copy()
+            # # Calculates dense optical flow by Farneback method 
+            # flow = cv2.calcOpticalFlowFarneback(self.prev_gray, gray,  
+            #                                 None, 
+            #                                 0.5, 3, 15, 3, 5, 1.2, 0)
+            # # Computes the magnitude and angle of the 2D vectors 
+            # magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+            # # Sets image hue according to the optical flow  
+            # # direction 
+            # self.mask[..., 0] = angle * 180 / np.pi / 2
+            
+            # # Sets image value according to the optical flow 
+            # # magnitude (normalized) 
+            # self.mask[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
+            
+            # # Converts HSV to RGB (BGR) color representation 
+            # rgb_flow = cv2.cvtColor(self.mask, cv2.COLOR_HSV2BGR)
+            
+            
             if self.is_sim2real:
                 for i in range(len(color)):
                     
@@ -172,18 +225,24 @@ class Simulator:
                     color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
                     colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
                     
-                    
                     # GAN on the fuul rgb 
                     # color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
                     # colors_gan.append(tensor2im(self.model_G(color_tensor))*circle_mask())
 
             if self.show_contact_px:
                 contact_px = self.allsight.detect_contact(depth)
+                
             self.allsight.updateGUI(color,
                                     depth,
                                     colors_gan=colors_gan,
                                     contact_px=contact_px)
-
+            # self.allsight.updateGUI(color,
+            #                         depth,
+            #                         colors_gan=[rgb_flow],
+            #                         contact_px=contact_px)
+            # Updates previous frame 
+            # self.prev_gray = gray
+        
         self.t.stop()
         
     def collect_data(self, conf):
@@ -215,16 +274,23 @@ class Simulator:
             # position of the joint frame relative to a given child center of mass frame (or world origin if no child specified)
         )
 
+        
+
+        # take ref frame
+        ref_frame, _ = self.allsight.render()
+
+
         # create data logger object
         self.logger = DataSimLogger(conf.save_prefix,
                                     conf.leds,
                                     conf.indenter,
                                     save=conf.save,
-                                    save_depth=conf.save_depth)
-
-        # take ref frame
-        ref_frame, _ = self.allsight.render()
-
+                                    save_depth=conf.save_depth,
+                                    ref_frame=cv2.cvtColor(ref_frame[0], cv2.COLOR_BGR2RGB),
+                                    transform=self.transform,
+                                    model_G=self.model_G,
+                                    device=self.device)
+        
         ref_img_color_path = os.path.join(self.logger.dataset_path_images, 'ref_frame.jpg')
 
         if conf.save:
@@ -247,6 +313,8 @@ class Simulator:
 
         current_pos, current_quat = pyb.getBasePositionAndOrientation(self.body.id)
         current_euler = pyb.getEulerFromQuaternion(current_quat)
+        
+        
 
         for q in Q:
 
@@ -266,8 +334,8 @@ class Simulator:
                 pyb.changeConstraint(self.cid,
                                      jointChildPivot=push_point_start[0],
                                      jointChildFrameOrientation=push_point_start[1],
-                                     maxForce=200)
-                pyb.stepSimulation()
+                                     maxForce=300)
+                # pyb.stepSimulation()
 
                 if i == self.top_split + self.cyl_split - 1 and q != 0: continue
                 colors_gan = []
@@ -276,29 +344,42 @@ class Simulator:
                 
                 ## depth, contact_px = cv_obj_detect(depth)
                 # self.allsight.updateGUI(color, depth)
-                if self.is_sim2real:
-                    for i in range(len(color)):
+                # if self.is_sim2real:
+                #     for i in range(len(color)):
 
-                            # SightGAN
-                            color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                            colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
-
-                            # GAN on the fuul rgb 
-                            # color_tensor = self.transform(color[i]).unsqueeze(0).to(self.device)
-                            # colors_gan.append(tensor2im(self.model_G(color_tensor))*circle_mask())
-
-
+                #             # SightGAN
+                #             color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
+                #             colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
+                            
+                #             if self.show_contact_px:
+                #                 contact_px = self.allsight.detect_contact(depth)
+                
+                
+                #             self.allsight.updateGUI(color,
+                #                                     depth,
+                #                                     colors_gan=colors_gan,
+                #                                     contact_px=contact_px)
+                # else:
                 if self.show_contact_px:
                     contact_px = self.allsight.detect_contact(depth)
+                
+                
                 self.allsight.updateGUI(color,
                                         depth,
                                         colors_gan=colors_gan,
                                         contact_px=contact_px)
                 
+                
+                
                 time.sleep(0.01)
 
                 for f in range(f_start_pi_10, f_end_pi_10,2):
-
+                    # Get the current position of the sphere object
+                    object_pos, object_ori = pyb.getBasePositionAndOrientation(self.obj.id)
+                    
+                    # Update the marker's position to match the object's position
+                    pyb.resetBasePositionAndOrientation(self.marker_id, object_pos, object_ori)
+                    
                     if i <= self.cyl_split:
                         force = f * K1[i]
                     else:
@@ -312,19 +393,33 @@ class Simulator:
                     colors_gan = []
                     color, depth = self.allsight.render()
                     # self.allsight.updateGUI(color, depth)
-                    if self.is_sim2real:
-                        for i in range(len(color)):
-                            color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
-                            colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
-
+                    # if self.is_sim2real:
+                    #     for i in range(len(color)):
+                    #         color_tensor = self.transform(foreground(color[i],self.ref_frame)).unsqueeze(0).to(self.device)
+                    #         colors_gan.append(inv_foreground(self.ref_frame,tensor2im(self.model_G(color_tensor))))
+                    #         if self.show_contact_px:
+                    #             contact_px = self.allsight.detect_contact(depth)
+                    #         self.allsight.updateGUI(color,
+                    #                                 depth,
+                    #                                 colors_gan=colors_gan,
+                    #                                 contact_px=contact_px)
+                    
+                        
+                    # else:
                     if self.show_contact_px:
                         contact_px = self.allsight.detect_contact(depth)
                     self.allsight.updateGUI(color,
                                             depth,
                                             colors_gan=colors_gan,
                                             contact_px=contact_px)
+                    # Get the current position of the sphere object
+                    object_pos, object_ori = pyb.getBasePositionAndOrientation(self.obj.id)
+                    
+                    # Update the marker's position to match the object's position
+                    pyb.resetBasePositionAndOrientation(self.marker_id, object_pos, object_ori)
+                    
                     pyb.stepSimulation()
-                    time.sleep(0.05)
+                    time.sleep(0.01)
 
                     if np.sum(depth):
                         pose = list(pyb.getBasePositionAndOrientation(self.obj.id)[0][:3])
