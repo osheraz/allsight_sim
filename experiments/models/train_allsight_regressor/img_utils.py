@@ -5,10 +5,32 @@ import torch
 
 
 def crop_image(img, pad):
+    """
+    Crops the image by removing padding from all sides.
+
+    Parameters:
+    - img (numpy.ndarray): Input image to be cropped.
+    - pad (int): Number of pixels to crop from each side.
+
+    Returns:
+    - numpy.ndarray: Cropped image.
+    """
     return img[pad:-pad, pad:-pad]
 
 
 def resize_and_pad(img, size, padColor=255):
+    """
+    Resizes the input image to the specified size and pads if necessary.
+
+    Parameters:
+    - img (numpy.ndarray): Input image to be resized.
+    - size (tuple): Desired output size (height, width).
+    - padColor (int or tuple): Color for the padding (default is 255, white).
+
+    Returns:
+    - numpy.ndarray: Resized and padded image.
+    """
+
     h, w = img.shape[:2]
     sh, sw = size
 
@@ -51,6 +73,17 @@ def resize_and_pad(img, size, padColor=255):
 
 
 def square_cut(img, size=480):
+    """
+    Cuts the input image to a square shape of a specified size and pads if necessary.
+
+    Parameters:
+    - img (numpy.ndarray): Input image to be processed.
+    - size (int): Desired size of the square image (default is 480).
+
+    Returns:
+    - numpy.ndarray: Square-shaped image with optional padding.
+    """
+
     col_sum = np.where(np.sum(img, axis=0) > 0)
     row_sum = np.where(np.sum(img, axis=1) > 0)
     y1, y2 = row_sum[0][0], row_sum[0][-1]
@@ -74,8 +107,14 @@ def square_cut(img, size=480):
 
 def circle_mask(size=(640, 480), border=0):
     """
-        used to filter center circular area of a given image,
-        corresponding to the AllSight surface area
+    Generates a circular mask image.
+
+    Parameters:
+    - size (tuple): Size of the output mask image (height, width).
+    - border (int): Border thickness around the circle (default is 0).
+
+    Returns:
+    - numpy.ndarray: Circular mask image with values normalized to [0, 1].
     """
     m = np.zeros((size[1], size[0]))
     m_center = (size[0] // 2, size[1] // 2)
@@ -88,6 +127,19 @@ def circle_mask(size=(640, 480), border=0):
 
 
 def get_coords(x, y, angle, imwidth, imheight):
+    """
+    Calculates coordinates of two points based on a given point, angle, and image dimensions.
+
+    Parameters:
+    - x (float): x-coordinate of the starting point.
+    - y (float): y-coordinate of the starting point.
+    - angle (float): Angle in radians for the direction.
+    - imwidth (int): Width of the image.
+    - imheight (int): Height of the image.
+
+    Returns:
+    - tuple: Coordinates of two points ((endx1, endy1), (endx2, endy2)).
+    """
     x1_length = (imwidth - x) / (math.cos(angle) + 1e-6)
     y1_length = (imheight - y) / (math.sin(angle) + 1e-6)
     length = max(abs(x1_length), abs(y1_length))
@@ -105,7 +157,15 @@ def get_coords(x, y, angle, imwidth, imheight):
 
 def interpolate_img(img, rows, cols):
     """
-    img: C x H x W
+    Interpolates an image tensor to a specified size using bilinear interpolation.
+
+    Parameters:
+    - img (torch.Tensor): Input image tensor of shape (channels, height, width).
+    - rows (int): Desired number of rows (height) for the output image.
+    - cols (int): Desired number of columns (width) for the output image.
+
+    Returns:
+    - torch.Tensor: Interpolated image tensor of shape (channels, rows, cols).
     """
 
     img = torch.nn.functional.interpolate(img, size=cols)
@@ -122,6 +182,16 @@ def interpolate_img(img, rows, cols):
 #     return diff_abs
 
 def _structure(target, size=None):
+    """
+    Performs structure analysis on the input image.
+
+    Parameters:
+    - target (numpy.ndarray): Input image to be analyzed.
+    - size (tuple or None): Optional size of the output image (height, width).
+
+    Returns:
+    - numpy.ndarray: Processed image after structure analysis.
+    """
     gray_target = cv2.cvtColor(target, cv2.COLOR_BGR2GRAY)
     gray_circle = cv2.adaptiveThreshold(
         gray_target, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, -30)
@@ -147,12 +217,35 @@ def _structure(target, size=None):
     return img if size is None else cv2.resize(img, size)
 
 def _diff(target, base):
+    """
+    Computes the absolute difference between two images.
+
+    Parameters:
+    - target (numpy.ndarray): Target image.
+    - base (numpy.ndarray): Base image.
+
+    Returns:
+    - numpy.ndarray: Absolute difference between target and base images.
+    """
+
     diff_raw = target - base
     diff_mask = (diff_raw < 150) # .astype(np.uint8)
     diff = diff_raw * diff_mask
     return diff
 
 def isInside(x, y, size=(640,480), border=0):
+    """
+    Checks if a point (x, y) lies inside a circular area.
+
+    Parameters:
+    - x (int): x-coordinate of the point.
+    - y (int): y-coordinate of the point.
+    - size (tuple): Size of the circular area (height, width).
+    - border (int): Border thickness around the circle (default is 0).
+
+    Returns:
+    - bool: True if the point is inside the circle, False otherwise.
+    """
 
     m_center = (size[0] // 2, size[1] // 2)
     m_radius = min(size[0], size[1]) // 2 - border
@@ -166,6 +259,17 @@ def isInside(x, y, size=(640,480), border=0):
 
 
 def _diff_abs(target, base):
+    """
+    Computes the absolute difference between two images and returns the mean absolute difference.
+
+    Parameters:
+    - target (numpy.ndarray): Target image.
+    - base (numpy.ndarray): Base image.
+
+    Returns:
+    - numpy.ndarray: Mean absolute difference between target and base images.
+    """
+
     diff = (target * 1.0 - base) / 255.0 + 0.5
     diff[diff < 0.5] = (diff[diff < 0.5] - 0.5) * 1.0 + 0.5
     diff_abs = np.mean(np.abs(diff - 0.5), axis=-1)
@@ -174,6 +278,25 @@ def _diff_abs(target, base):
 
 
 class ContactArea:
+    """
+    Class to compute and visualize contact area between two images.
+
+    Initialization Parameters:
+    - base (numpy.ndarray or None): Reference image for comparison.
+    - draw_poly (bool): Flag to enable/disable drawing polygons on the images (default is False).
+    - contour_threshold (int): Threshold for contour length to consider (default is 100).
+    - real_time (bool): Flag to enable real-time processing (default is True).
+
+    Methods:
+    - __call__(target, base=None): Computes the contact area between the target image and the base image.
+    Returns the polygon coordinates and major/minor axes coordinates if found.
+
+    Attributes:
+    - base (numpy.ndarray or None): Reference image for comparison.
+    - draw_poly (bool): Flag to enable/disable drawing polygons on the images.
+    - contour_threshold (int): Threshold for contour length to consider.
+    - real_time (bool): Flag to enable real-time processing.
+    """
     def __init__(
             self, base=None, draw_poly=False, contour_threshold=100, real_time=True, *args, **kwargs
     ):
@@ -208,18 +331,47 @@ class ContactArea:
         return poly, major_axis, major_axis_end, minor_axis, minor_axis_end
 
     def _diff(self, target, base):
+        """
+        Computes the normalized difference between the target and base images.
+
+        Parameters:
+        - target (numpy.ndarray): Target image.
+        - base (numpy.ndarray): Base image.
+
+        Returns:
+        - numpy.ndarray: Normalized difference between target and base images.
+        """
+
         diff = (target * 1.0 - base) / 255.0 + 0.5
         diff[diff < 0.5] = (diff[diff < 0.5] - 0.5) * 0.7 + 0.5
         diff_abs = np.mean(np.abs(diff - 0.5), axis=-1)
         return diff_abs
 
     def _smooth(self, target):
+        """
+        Applies smoothing to the target image using a predefined kernel.
+
+        Parameters:
+        - target (numpy.ndarray): Input image.
+
+        Returns:
+        - numpy.ndarray: Smoothed image.
+        """
         kernel = np.ones((64, 64), np.float32)
         kernel /= kernel.sum()
         diff_blur = cv2.filter2D(target, -1, kernel)
         return diff_blur
 
     def _contours(self, target):
+        """
+        Finds contours in the target image after thresholding and erosion.
+
+        Parameters:
+        - target (numpy.ndarray): Input image.
+
+        Returns:
+        - list: List of contours found in the image.
+        """
         mask = ((np.abs(target) > 0.04) * 255).astype(np.uint8)
         kernel = np.ones((16, 16), np.uint8)
         mask = cv2.erode(mask, kernel)
@@ -236,6 +388,18 @@ class ContactArea:
             minor_axis_end,
             lineThickness=2,
     ):
+        """
+        Draws the major and minor axes and the polygon on the target image.
+
+        Parameters:
+        - target (numpy.ndarray): Image to draw on.
+        - poly (numpy.ndarray): Polygon points.
+        - major_axis (numpy.ndarray): Starting point of the major axis.
+        - major_axis_end (numpy.ndarray): End point of the major axis.
+        - minor_axis (numpy.ndarray): Starting point of the minor axis.
+        - minor_axis_end (numpy.ndarray): End point of the minor axis.
+        - lineThickness (int, optional): Thickness of lines. Default is 2.
+        """
         cv2.polylines(target, [poly], True, (255, 255, 255), lineThickness)
         cv2.line(
             target,

@@ -4,7 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-    SE(3) pose utilities
+SE(3) pose utilities
+
+This module provides utilities for generating SE(3) poses from vertices and normals,
+including shear transformations and delta rotations.
 """
 
 
@@ -21,8 +24,16 @@ def pose_from_vertex_normal(
     vertices: np.ndarray, normals: np.ndarray, shear_mag: float, delta: np.ndarray
 ) -> np.ndarray:
     """
-    Generate SE(3) pose given
-    vertices: (N, 3), normals: (N, 3), shear_mag: scalar, delta: (N, 1)
+    Generate SE(3) pose given vertices and normals.
+
+    Args:
+        vertices (np.ndarray): Vertices of the mesh (N, 3).
+        normals (np.ndarray): Normals of the mesh (N, 3).
+        shear_mag (float): Shear magnitude for pose generation.
+        delta (np.ndarray): Delta rotations for pose generation (N, 1).
+
+    Returns:
+        np.ndarray: Generated SE(3) poses (N, 4, 4).
     """
     vertices = np.atleast_2d(vertices)
     normals = np.atleast_2d(normals)
@@ -105,7 +116,16 @@ def pose_from_vertex_normal(
 
 def skew_matrix(v: np.ndarray) -> np.ndarray:
     """
-    Get skew-symmetric matrix from vector
+    Generate SE(3) pose given vertices and normals.
+
+    Args:
+        vertices (np.ndarray): Vertices of the mesh (N, 3).
+        normals (np.ndarray): Normals of the mesh (N, 3).
+        shear_mag (float): Shear magnitude for pose generation.
+        delta (np.ndarray): Delta rotations for pose generation (N, 1).
+
+    Returns:
+        np.ndarray: Generated SE(3) poses (N, 4, 4).
     """
     v = np.atleast_2d(v)
     # vector to its skew matrix

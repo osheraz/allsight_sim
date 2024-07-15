@@ -122,7 +122,7 @@ class BaseModel(ABC):
 
     def test(self):
         """Forward function used in test time.
-
+class Base
         This function wraps <forward> function in no_grad() so we don't save intermediate steps for backprop
         It also calls <compute_visuals> to produce additional visualization results
         """
