@@ -12,7 +12,7 @@ Additionally, we plan to provide extensive documentation for this repository, st
   width="60%">
 </div>
 
-###  Update Nov. 20, 2023 
+###  Update
 IsaacGym support is added, will be released in the following weeks.
 
 <div align="center">
