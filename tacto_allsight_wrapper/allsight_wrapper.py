@@ -12,6 +12,18 @@ from tacto import Renderer as tRenderer, Sensor as tSensor
 
 # helper functions
 def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=False):
+    """
+    Convert Euler angles to a transformation matrix.
+
+    Args:
+        angles (list, optional): Euler angles [theta_x, theta_y, theta_z]. Defaults to [0, 0, 0].
+        translation (list, optional): Translation vector [tx, ty, tz]. Defaults to [0, 0, 0].
+        xyz (str, optional): Order of Euler angles. Defaults to "xyz".
+        degrees (bool, optional): Whether angles are in degrees. Defaults to False.
+
+    Returns:
+        np.ndarray: Transformation matrix.
+    """
     r = R.from_euler(xyz, angles, degrees=degrees)
     pose = np.eye(4)
     pose[:3, 3] = translation
@@ -21,8 +33,14 @@ def euler2matrix(angles=[0, 0, 0], translation=[0, 0, 0], xyz="xyz", degrees=Fal
 
 def circle_mask(size=(480, 480), border=0):
     """
-        used to filter center circular area of a given image,
-        corresponding to the AllSight surface area
+    Create a circular mask for filtering images.
+
+    Args:
+        size (tuple, optional): Size of the mask (width, height). Defaults to (480, 480).
+        border (int, optional): Border thickness around the circle. Defaults to 0.
+
+    Returns:
+        np.ndarray: Circular mask as an image.
     """
     m = np.zeros((size[1], size[0]))
     m_center = (size[0] // 2, size[1] // 2)
@@ -36,18 +54,46 @@ def circle_mask(size=(480, 480), border=0):
 
 
 class Renderer(tRenderer):
-    '''allsight custom renderer
+    """
+    allsight custom renderer
 
-    Parameters
-    ----------
-    Renderer : 
-        inheritance of tacto renderer object
-    '''
+    Parameters:
+        width : int
+            Width of the renderer.
+        height : int
+            Height of the renderer.
+        background : Any
+            Background configuration.
+        config_path : str
+            Path to configuration file.
+    """
 
     def __init__(self, width, height, background, config_path):
+        """
+        Initializes the Renderer.
+
+        Args:
+            width (int): Width of the renderer.
+            height (int): Height of the renderer.
+            background (Any): Background configuration.
+            config_path (str): Path to configuration file.
+        """
         super().__init__(width, height, background, config_path, headless=True)
 
     def _post_process(self, color, depth, camera_index, noise=True, calibration=True):
+        """
+        Post-processes rendered images.
+
+        Args:
+            color (np.ndarray): Color image.
+            depth (np.ndarray): Depth image.
+            camera_index (int): Index of the camera.
+            noise (bool, optional): Whether to add noise. Defaults to True.
+            calibration (bool, optional): Whether to calibrate. Defaults to True.
+
+        Returns:
+            tuple: Processed color and depth images.
+        """
         if calibration:
             # use custom _calibration method for background image
             color = self._calibrate(color, camera_index, self.conf.sensor.bg_calibration)
@@ -57,22 +103,17 @@ class Renderer(tRenderer):
         return color, depth
 
     def _calibrate(self, color: np.ndarray, camera_index: int, cfg: DictConfig) -> np.ndarray:
-        '''custom calibration method for background image, using bluring kernel and color cliping
+        """
+        Custom calibration method for background image.
 
-        Parameters
-        ----------
-        color : np.ndarray
-            rgb background image
-        camera_index : int
-            camera id
-        cfg : DictConfig
-            config for background calibration -> config_allsight.yaml
+        Args:
+            color (np.ndarray): RGB background image.
+            camera_index (int): Camera ID.
+            cfg (DictConfig): Configuration for background calibration.
 
-        Returns
-        -------
-        np.ndarray
-            background color image calibrated
-        '''
+        Returns:
+            np.ndarray: Calibrated background color image.
+        """
 
         # init conf
         if cfg.enable:
@@ -100,8 +141,15 @@ class Renderer(tRenderer):
             return super()._calibrate(color, camera_index)
 
     def _init_light(self, light=None):
-        ''' custom init_light method. used for override parameters such as spotlight inner/outer cones from the config.
-        '''
+        """
+        Custom initialization method for light parameters.
+
+        Args:
+            light: Optional. Light parameters.
+
+        Notes:
+            Overrides parameters such as spotlight inner/outer cones from the config.
+        """
 
         # Load light from config file
         if light is None:
@@ -180,14 +228,50 @@ C_PATH = os.path.join(os.path.dirname(__file__)) + "../experiments/conf/sensor"
 
 
 def _get_default_config(filename):
+    """
+    Get the default configuration file path.
+
+    Args:
+        filename (str): Configuration file name.
+
+    Returns:
+        str: Full path to the configuration file.
+    """
     return os.path.join(C_PATH, filename)
 
 
 def get_allsight_config_path():
+    """
+    Get the path to the AllSight configuration file.
+
+    Returns:
+        str: Path to the configuration file.
+    """
     return _get_default_config("config_allsight.yml")
 
 
 class Sensor(tSensor):
+    """
+    Sensor class for handling sensor functionalities.
+
+    Parameters:
+        width : int, optional
+            Width of the sensor. Defaults to 120.
+        height : int, optional
+            Height of the sensor. Defaults to 160.
+        background : Any, optional
+            Background image. Defaults to None.
+        config_path : str, optional
+            Path to configuration file. Defaults to get_allsight_config_path().
+        visualize_gui : bool, optional
+            Whether to visualize GUI. Defaults to True.
+        show_depth : bool, optional
+            Whether to show depth. Defaults to True.
+        zrange : float, optional
+            Range of z-axis. Defaults to 0.002.
+        cid : int, optional
+            Camera ID. Defaults to 0.
+    """
     def __init__(
             self,
             width=120,
@@ -200,15 +284,17 @@ class Sensor(tSensor):
             cid=0,
     ):
         """
+        Initializes the Sensor object.
 
-        :param width: scalar
-        :param height: scalar
-        :param background: image
-        :param visualize_gui: Bool
-        :param show_depth: Bool
-        :param show_cv_detect: Bool
-        :param config_path:
-        :param cid: Int
+        Args:
+            width (int, optional): Width of the sensor. Defaults to 120.
+            height (int, optional): Height of the sensor. Defaults to 160.
+            background (Any, optional): Background image. Defaults to None.
+            config_path (str, optional): Path to configuration file. Defaults to get_allsight_config_path().
+            visualize_gui (bool, optional): Whether to visualize GUI. Defaults to True.
+            show_depth (bool, optional): Whether to show depth. Defaults to True.
+            zrange (float, optional): Range of z-axis. Defaults to 0.002.
+            cid (int, optional): Camera ID. Defaults to 0.
         """
         self.cid = cid
         self.renderer = Renderer(width, height, background, config_path)
@@ -226,13 +312,12 @@ class Sensor(tSensor):
         self.blur_enabled = self.renderer.conf.sensor.blur_contact.enable
 
     def render(self):
-        '''Render tacto images from each camera's view.
-        
-        Returns
-        -------
-        colors: color images
-        depths: depth images
-        '''
+        """
+        Render tacto images from each camera's view.
+
+        Returns:
+            tuple: Color and depth images.
+        """
 
         self._update_object_poses()
 
@@ -271,21 +356,16 @@ class Sensor(tSensor):
         return colors, depths
 
     def _blur_contact(self, color: np.ndarray, depth_map: np.ndarray) -> list:
-        '''blur contact area depend on the config 
+        """
+        Blur contact area depending on the configuration.
 
-        Parameters
-        ----------
-        color : np.ndarray
-            color img
-        depth_map : np.ndarray
-            depth map
+        Args:
+            color (np.ndarray): Color image.
+            depth_map (np.ndarray): Depth map.
 
-        Returns
-        -------
-        list
-            _description_
-        '''
-
+        Returns:
+            list: List of blurred images.
+        """
         # init blur conf from config_allsight.yaml
         blur = self.renderer.conf.sensor.blur_contact
 
@@ -332,6 +412,17 @@ class Sensor(tSensor):
         return [result]
 
     def _subtract_bg(self, img1, img2, offset=0.5):
+        """
+        Subtract background image from the input image.
+
+        Args:
+            img1 (np.ndarray): Input image to be processed.
+            img2 (np.ndarray): Background image.
+            offset (float, optional): Offset value. Defaults to 0.5.
+
+        Returns:
+            np.ndarray: Resultant image after background subtraction.
+        """
 
         img1 = np.int32(img1)
         img2 = np.int32(img2)
@@ -340,52 +431,68 @@ class Sensor(tSensor):
         return diff
 
     def updateGUI(self, colors, depths, colors_gan=[], contact_px=None, bg=None):
-            """
-            Update images for visualization
-            """
-            if not self.visualize_gui:
-                return
+        """
+        Update images for visualization.
 
-            # concatenate colors horizontally (axis=1)
-            color = np.concatenate(colors, axis=1)
+        Args:
+            colors (list): List of color images.
+            depths (list): List of depth images.
+            colors_gan (list, optional): List of GAN-generated color images. Defaults to [].
+            contact_px (list, optional): Contact pixel information. Defaults to None.
+            bg (Any, optional): Background image. Defaults to None.
+        """
+        if not self.visualize_gui:
+            return
 
-            if len(colors_gan)!=0:
-                color_gan = np.concatenate(colors_gan, axis=1)
+        # concatenate colors horizontally (axis=1)
+        color = np.concatenate(colors, axis=1)
 
+        if len(colors_gan)!=0:
+            color_gan = np.concatenate(colors_gan, axis=1)
+
+        if bg is not None:
+            mask = circle_mask()
+            color = self._subtract_bg(color, bg[0]) * mask
+            if len(colors_gan) != 0:
+                color_gan = self._subtract_bg(color_gan, bg[0]) * mask
+
+        if contact_px is not None:
+            [x,y,r] = contact_px
+            # Draw the circle on the original image
+            cv2.circle(color, (x, y), int(r*2.5), (0, 255, 0), 4)
+            # Draw a small circle at the center of the detected circle
+            cv2.circle(color, (x, y), 2, (0, 0, 255), 3)
+
+        if self.show_depth:
+            # concatenate depths horizontally (axis=1)
+            depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
             if bg is not None:
-                mask = circle_mask()
-                color = self._subtract_bg(color, bg[0]) * mask
-                if len(colors_gan) != 0:
-                    color_gan = self._subtract_bg(color_gan, bg[0]) * mask
-
-            if contact_px is not None:
-                [x,y,r] = contact_px
-                # Draw the circle on the original image
-                cv2.circle(color, (x, y), int(r*2.5), (0, 255, 0), 4)
-                # Draw a small circle at the center of the detected circle
-                cv2.circle(color, (x, y), 2, (0, 0, 255), 3)
-
-            if self.show_depth:
-                # concatenate depths horizontally (axis=1)
-                depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
-                if bg is not None:
-                    color = cv2.cvtColor((color * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
-                else:
-                    color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
-                # concatenate the resulting two images vertically (axis=0)
-                if len(colors_gan) == 0:
-                    color_n_depth = np.concatenate([color, depth], axis=0)
-                else:
-                    color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
-                cv2.imshow(
-                    "color and depth", color_n_depth
-                )
+                color = cv2.cvtColor((color * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
             else:
-                cv2.imshow("color", color)
+                color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+            # concatenate the resulting two images vertically (axis=0)
+            if len(colors_gan) == 0:
+                color_n_depth = np.concatenate([color, depth], axis=0)
+            else:
+                color_n_depth = np.concatenate([color,color_gan, depth], axis=0)
+            cv2.imshow(
+                "color and depth", color_n_depth
+            )
+        else:
+            cv2.imshow("color", color)
 
-            cv2.waitKey(1)
+        cv2.waitKey(1)
 
     def detect_contact(self,depths)->list:
+        """
+        Detect contact from depth images.
+
+        Args:
+            depths (list): List of depth images.
+
+        Returns:
+            list: Contact pixel information.
+        """
 
         depth = np.concatenate(list(map(self._depth_to_color, depths)), axis=1)
         depth_image = depth.copy()

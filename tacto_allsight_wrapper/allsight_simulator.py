@@ -39,17 +39,17 @@ origin, xaxis, yaxis, zaxis = (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)
 
 
 class Simulator:
-
+    """Simulator class for defining and running a simulation scene with allsight sensor."""
     def __init__(self, cfg: DictConfig,
                  ):
 
-        '''Simulator object for defining simulation scene with allsight sensor
+        """
+        Initializes Simulator with configuration.
 
-        Parameters
-        ----------
-        cfg : DictConfig
-            allsight config dict -> allsight.yaml
-        '''
+        Parameters:
+            cfg : DictConfig
+                Configuration dictionary from allsight.yaml.
+        """
 
         # bg image
         leds = cfg.summary.leds
@@ -93,14 +93,14 @@ class Simulator:
 
     # visual creator function
     def create_env(self, cfg: DictConfig, obj_id: str = '30'):
-        """Create scene including visualizer gui and bodys
+        """
+        Creates simulation environment including visualizer GUI and bodies.
 
-        Parameters
-        ----------
-        cfg : DictConfig
-            allsight config dict -> allsight.yaml
-        obj_id : str, optional
-            Define which object
+        Parameters:
+            cfg : DictConfig
+                Configuration dictionary from allsight.yaml.
+            obj_id : str, optional
+                Object identifier to define which object to use.
         """
 
         # Initialize World
@@ -136,15 +136,17 @@ class Simulator:
         self.object_control_panel = cfg.object_control_panel
 
     def start(self):
-        '''Start the simulation thread
-        '''
+        """
+        Starts the simulation thread.
+        """
 
         self.t = px.utils.SimulationThread(real_time_factor=1.0)
         self.t.start()
 
     def run_sim(self):
-        '''run simulation loop for demo proposes
-        '''
+        """
+        Runs simulation loop for demonstration purposes.
+        """
 
         self.start()
 
@@ -179,7 +181,13 @@ class Simulator:
         self.t.stop()
 
     def collect_data(self, conf):
+        """
+        Collects simulation data.
 
+        Parameters:
+            conf : DictConfig
+                Configuration for data collection.
+        """
         # start the simulation thread
         self.start()
 
@@ -348,23 +356,22 @@ class Simulator:
         self.logger.save_data_dict()
 
     def get_push_point_by_index(self, q: float, i: int) -> Any:
-        '''Get start and end points for every press process
+        """
+        Gets start and end points for every press process.
 
-        Parameters
-        ----------
-        q : float
-            angle id
-        i : int
-            _description_
+        Parameters:
+            q : float
+                Angle ID.
+            i : int
+                Description.
 
-        Returns
-        -------
-        Any
-            push_point_start : list
-                starting point for press process [xyz]
-            push_point_end : list
-                end point for press process [xyz]
-        '''
+        Returns:
+            tuple
+                push_point_start : list
+                    Starting point for press process [xyz].
+                push_point_end : list
+                    End point for press process [xyz].
+        """
 
         G = 2
 

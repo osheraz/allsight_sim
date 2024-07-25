@@ -5,6 +5,8 @@
 
 """
 Mesh processing utilities
+
+This module provides utility functions for processing 3D meshes.
 """
 
 import itertools
@@ -21,7 +23,15 @@ def sample_mesh(
     mesh: trimesh.base.Trimesh, num_samples: int, method: str = "even"
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Sample mesh and return point/normals
+    Sample points and normals from a 3D mesh.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        num_samples (int): Number of samples to generate.
+        method (str, optional): Sampling method ("even" or "normal"). Defaults to "even".
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Sampled points and corresponding normals.
     """
     sampled_points, faces = np.empty((0, 3)), np.array([], dtype=int)
     # https://github.com/mikedh/trimesh/issues/558 : trimesh.sample.sample_surface_even gives wrong number of samples
@@ -49,7 +59,14 @@ def extract_edges(
     mesh: trimesh.base.Trimesh, num_samples: int
 ) -> Tuple[np.ndarray, np.ndarray, int]:
     """
-    Extract mesh edges via pyvista
+    Extract edges from a 3D mesh using pyvista.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        num_samples (int): Number of edge samples to generate.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray, int]: Sampled edge points, normals, and actual number of samples used.
     """
     mesh = pv.wrap(mesh)
     edges = mesh.extract_feature_edges(10)
@@ -75,7 +92,14 @@ def sample_mesh_edges(
     mesh: trimesh.base.Trimesh, num_samples: int
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Sample only mesh edges
+    Sample points and normals from the edges of a 3D mesh.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        num_samples (int): Number of samples to generate.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Sampled edge points and corresponding normals.
     """
     sampled_edge_points, sampled_edge_normals, num_samples = extract_edges(
         mesh, num_samples
@@ -92,7 +116,18 @@ def sample_poses_on_mesh(
     shear_mag: float = 5.0,
 ) -> np.ndarray:
     """
-    Sample mesh and generates candidate sensor poses
+    Sample sensor poses on a 3D mesh.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        num_samples (int): Number of poses to generate.
+        edges (bool, optional): Whether to sample from mesh edges. Defaults to True.
+        constraint (np.ndarray, optional): Constraint for sampling points. Defaults to None.
+        r (float, optional): Constraint radius. Defaults to None.
+        shear_mag (float, optional): Shear magnitude for pose generation. Defaults to 5.0.
+
+    Returns:
+        np.ndarray: Generated sensor poses.
     """
     if constraint is not None:
         constrainedSampledPoints, constrainedSampledNormals = np.empty(
@@ -145,7 +180,17 @@ def sample_poses_on_mesh_minkloc(
     shear_mag: float = 5.0,
 ) -> np.ndarray:
     """
-    Sample mesh and generates candidate sensor poses, custom for minkloc data
+    Sample sensor poses on a 3D mesh for Minkloc data.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        num_samples (int): Number of poses to generate.
+        edges (bool, optional): Whether to sample from mesh edges. Defaults to True.
+        num_angles (int, optional): Number of angles for pose sampling. Defaults to 1.
+        shear_mag (float, optional): Shear magnitude for pose generation. Defaults to 5.0.
+
+    Returns:
+        np.ndarray: Generated sensor poses.
     """
     if edges:
         numSamplesEdges = int(0.3 * num_samples)
@@ -169,6 +214,16 @@ def sample_poses_on_mesh_minkloc(
     return T
 
 def sample_grid(mesh: trimesh.base.Trimesh, shear_mag: float = 5.0,)-> np.ndarray:
+    """
+    Sample a grid of poses on a 3D mesh.
+
+    Args:
+        mesh (trimesh.base.Trimesh): The input mesh.
+        shear_mag (float, optional): Shear magnitude for pose generation. Defaults to 5.0.
+
+    Returns:
+        np.ndarray: Generated grid of poses.
+    """
     z_max = mesh.vertices[:,2].max()
     org = np.array([0.0, 0.0, z_max])
     # xy_vals = np.array([-3,0,3])/1000.0
@@ -188,6 +243,16 @@ def sample_grid(mesh: trimesh.base.Trimesh, shear_mag: float = 5.0,)-> np.ndarra
     return T, offset_vals
 
 # def sample_closest_point(mesh: trimesh.base.Trimesh, p:np.ndarray):
+#    """
+#    Sample closest points on a 3D mesh.
+#
+#    Args:
+#        mesh (trimesh.base.Trimesh): The input mesh.
+#        p (np.ndarray): Array of poses.
+#
+#    Returns:
+#        np.ndarray: Modified array of poses with closest points sampled.
+#    """
 #     new_p = np.zeros_like(p)
 #     sP, f = trimesh.sample.sample_surface(mesh, count=10000)
 #     for i, p0 in enumerate(p):

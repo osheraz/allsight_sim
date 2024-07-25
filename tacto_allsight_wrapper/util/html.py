@@ -4,11 +4,16 @@ import os
 
 
 class HTML:
-    """This HTML class allows us to save images and write texts into a single HTML file.
+    """
+    A class to generate and save an HTML document containing images and text.
 
-     It consists of functions such as <add_header> (add a text header to the HTML file),
-     <add_images> (add a row of images to the HTML file), and <save> (save the HTML to the disk).
-     It is based on Python library 'dominate', a Python library for creating and manipulating HTML documents using a DOM API.
+    This class uses the 'dominate' Python library to create and manipulate HTML documents
+    using a DOM API.
+
+    Attributes:
+        web_dir (str): The directory where the webpage will be stored. The HTML file will be created at <web_dir>/index.html.
+        title (str): The name of the webpage.
+        refresh (int): How often the webpage should refresh itself. If set to 0, no refreshing occurs.
     """
 
     def __init__(self, web_dir, title, refresh=0):
@@ -33,7 +38,12 @@ class HTML:
                 meta(http_equiv="refresh", content=str(refresh))
 
     def get_image_dir(self):
-        """Return the directory that stores images"""
+        """
+        Get the directory path where images are stored.
+
+        Returns:
+            str: Directory path where images are stored.
+        """
         return self.img_dir
 
     def add_header(self, text):
@@ -46,12 +56,14 @@ class HTML:
             h3(text)
 
     def add_images(self, ims, txts, links, width=400):
-        """add images to the HTML file
+        """
+        Add images and associated text to the HTML document.
 
-        Parameters:
-            ims (str list)   -- a list of image paths
-            txts (str list)  -- a list of image names shown on the website
-            links (str list) --  a list of hyperref links; when you click an image, it will redirect you to a new page
+        Args:
+            ims (list of str): List of image paths.
+            txts (list of str): List of image names shown on the webpage.
+            links (list of str): List of hyperlinks associated with each image.
+            width (int, optional): Width of the displayed images in pixels. Default is 400.
         """
         self.t = table(border=1, style="table-layout: fixed;")  # Insert a table
         self.doc.add(self.t)
@@ -66,7 +78,9 @@ class HTML:
                             p(txt)
 
     def save(self):
-        """save the current content to the HMTL file"""
+        """
+        Save the HTML document to a file in the specified directory.
+        """
         html_file = '%s/index.html' % self.web_dir
         f = open(html_file, 'wt')
         f.write(self.doc.render())

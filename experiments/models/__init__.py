@@ -23,11 +23,22 @@ from models.base_model import BaseModel
 
 
 def find_model_using_name(model_name):
-    """Import the module "models/[model_name]_model.py".
+    """
+    Import the module "models/[model_name]_model.py".
 
     In the file, the class called DatasetNameModel() will
     be instantiated. It has to be a subclass of BaseModel,
     and it is case-insensitive.
+    
+    Parameters:
+        model_name (str): The name of the model to import.
+
+    Returns:
+        class: The class of the imported model that subclasses BaseModel.
+
+    Raises:
+        ImportError: If the specified model name cannot be found or loaded.
+
     """
     model_filename = "models." + model_name + "_model"
     modellib = importlib.import_module(model_filename)
@@ -46,20 +57,36 @@ def find_model_using_name(model_name):
 
 
 def get_option_setter(model_name):
-    """Return the static method <modify_commandline_options> of the model class."""
+    """
+    Return the static method <modify_commandline_options> of the model class.
+
+    Parameters:
+        model_name (str): The name of the model to retrieve the option setter for.
+
+    Returns:
+        method: The static method modify_commandline_options of the model class.
+
+    Raises:
+        ImportError: If the specified model name cannot be found or loaded.
+
+    """
     model_class = find_model_using_name(model_name)
     return model_class.modify_commandline_options
 
 
 def create_model(opt):
-    """Create a model given the option.
+    """
+    Create a model given the option.
 
-    This function warps the class CustomDatasetDataLoader.
+    This function wraps the class CustomDatasetDataLoader.
     This is the main interface between this package and 'train.py'/'test.py'
 
-    Example:
-        >>> from models import create_model
-        >>> model = create_model(opt)
+    Parameters:
+        opt (argparse.Namespace): The options parsed from command line or configuration file.
+
+    Returns:
+        instance: An instance of the model specified by opt.model.
+
     """
     model = find_model_using_name(opt.model)
     instance = model(opt)

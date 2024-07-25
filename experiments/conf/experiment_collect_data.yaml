@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: experiments/conf/saved_configs/${summary.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+    dir: simulation/allsight_sim/experiments/conf/saved_configs/${summary.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
 
 defaults:
   - _self_
@@ -14,8 +14,8 @@ show_detect: False # visulize detection work only if true and show_depth true
 summary:
 # used for both demo & collect_data
   name: collect_data
-  indenter: rect # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
-  leds: white # white | rrrgggbbb | rgbrgbrgb
+  indenter: sphere3 # sphere3 | sphere4 | sphere5 | cube | rect |  ellipse | triangle
+  leds: rrrgggbbb # white | rrrgggbbb | rgbrgbrgb
   sensor_id: 12 # for white: 12 - 19  
               # for rrrgggbbb: 3
               # for rgbrgbrgb: 0 
@@ -29,7 +29,7 @@ summary:
   start_random_angle: True
   cyl_split: 38
   top_split: 4
-  save: False
+  save: True
   save_depth: False
   save_prefix: sensor${summary.sensor_id}_${summary.indenter}
 

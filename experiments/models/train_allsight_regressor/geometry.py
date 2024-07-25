@@ -3,6 +3,15 @@ import math
 
 
 def T_inv(T_in):
+    """
+    Calculate the inverse transformation matrix `T_inv` of a given homogeneous transformation matrix `T_in`.
+
+    Args:
+        T_in (numpy.ndarray): 4x4 homogeneous transformation matrix.
+
+    Returns:
+        numpy.ndarray: Inverse of the input transformation matrix `T_in`.
+    """
     R_in = T_in[:3, :3]
     t_in = T_in[:3, [-1]]
     R_out = R_in.T
@@ -11,16 +20,46 @@ def T_inv(T_in):
 
 
 def convert_quat_xyzw_to_wxyz(q):
+    """
+    Convert a quaternion from XYZW convention to WXYZ convention.
+
+    Args:
+        q (list or numpy.ndarray): Quaternion in XYZW convention.
+
+    Returns:
+        list or numpy.ndarray: Quaternion converted to WXYZ convention.
+    """
     q[0], q[1], q[2], q[3] = q[3], q[0], q[1], q[2]
     return q
 
 
 def convert_quat_wxyz_to_xyzw(q):
+    """
+    Convert a quaternion from WXYZ convention to XYZW convention.
+
+    Args:
+        q (list or numpy.ndarray): Quaternion in WXYZ convention.
+
+    Returns:
+        list or numpy.ndarray: Quaternion converted to XYZW convention.
+    """
+
     q[3], q[0], q[1], q[2] = q[0], q[1], q[2], q[3]
     return q
 
 
 def unit_vector(data, axis=None, out=None):
+    """
+    Normalize a vector or array of vectors along a specified axis.
+
+    Args:
+        data (array_like): Input vector or array of vectors to be normalized.
+        axis (int, optional): Axis along which to compute vector norms.
+        out (numpy.ndarray, optional): Output array for storing results.
+
+    Returns:
+        numpy.ndarray: Normalized vector or array of vectors.
+    """
     if out is None:
         data = np.array(data, dtype=np.float64, copy=True)
         if data.ndim == 1:
@@ -40,6 +79,15 @@ def unit_vector(data, axis=None, out=None):
 
 
 def concatenate_matrices(*matrices):
+    """
+    Concatenate multiple homogeneous transformation matrices into a single matrix.
+
+    Args:
+        *matrices (numpy.ndarray): Homogeneous transformation matrices to concatenate.
+
+    Returns:
+        numpy.ndarray: Resulting concatenated homogeneous transformation matrix.
+    """
     M = np.identity(4)
     for i in matrices:
         M = np.dot(M, i)
@@ -47,6 +95,17 @@ def concatenate_matrices(*matrices):
 
 
 def rotation_matrix(angle, direction, point=None):
+    """
+    Generate a 4x4 homogeneous rotation matrix for rotation around a specified axis by a given angle.
+
+    Args:
+        angle (float): Angle of rotation in radians.
+        direction (array_like): Unit vector specifying the axis of rotation.
+        point (array_like, optional): Point around which to perform the rotation (default: origin).
+
+    Returns:
+        numpy.ndarray: Homogeneous rotation matrix representing the rotation around the specified axis.
+    """
     sina = math.sin(angle)
     cosa = math.cos(angle)
     direction = unit_vector(direction[:3])
