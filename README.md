@@ -1,4 +1,4 @@
-# AllSight_Sim : TACTO implementation for the AllSight tactile Sensor
+# AllSight_Sim
 
 ## Overview
 This package offers a simulation environment for a small 3D structured vision-based finger sensor called AllSight. It includes the integration of the AllSight model with the [TACTO](https://github.com/facebookresearch/tacto) API simulation, allowing for data collection and simulation of robotic in-hand manipulation scenarios. For more information refer to the corresponding [paper](https://arxiv.org/abs/2307.02928)
@@ -13,7 +13,7 @@ Additionally, we plan to provide extensive documentation for this repository, st
 </div>
 
 ###  Update
-IsaacGym support is added, will be released in the following weeks.
+IsaacGym support has been added, you can access it by following this [link]([https://arxiv.org/abs/2309.10409](https://github.com/osheraz/IsaacGymInsertion)).
 
 <div align="center">
   <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/isaac.gif?raw=true"
