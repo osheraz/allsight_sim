@@ -13,7 +13,7 @@ Additionally, we plan to provide extensive documentation for this repository, st
 </div>
 
 ###  Update
-IsaacGym support has been added, you can access it by following this [link]([https://arxiv.org/abs/2309.10409](https://github.com/osheraz/IsaacGymInsertion)).
+IsaacGym support has been added, you can access it by following this [link](https://github.com/osheraz/IsaacGymInsertion).
 
 <div align="center">
   <img src="https://github.com/osheraz/allsight_sim/blob/main/website/gif/isaac.gif?raw=true"
